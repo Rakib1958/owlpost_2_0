@@ -1,9 +1,10 @@
 module com.example.owlpost_2_0 {
     requires javafx.controls;
     requires javafx.fxml;
-    requires java.desktop;
     requires javafx.media;
     requires java.sql;
+    requires jdk.httpserver;
+    requires jakarta.mail;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;

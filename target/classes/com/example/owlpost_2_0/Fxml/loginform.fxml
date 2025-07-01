@@ -1,14 +1,271 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.example.owlpost_2_0.Controllers.LoginController"
-            prefHeight="400.0" prefWidth="600.0">
-
-</AnchorPane>
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" stylesheets="@../Styles/loginstyles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.owlpost_2_0.Controllers.LoginController">
+    <children>
+        <Pane fx:id="sortingPane" prefHeight="200.0" prefWidth="200.0">
+            <children>
+                <ImageView fitHeight="813.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/sortinghat.png" />
+                    </image>
+                </ImageView>
+                <Label fx:id="houseSelection" layoutX="69.0" layoutY="572.0" prefHeight="39.0" prefWidth="498.0" wrapText="true" />
+                <ImageView fx:id="patronus" fitHeight="184.0" fitWidth="143.0" layoutX="1053.0" layoutY="107.0" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="patronus_frame" fitHeight="260.0" fitWidth="222.0" layoutX="1014.0" layoutY="75.0" pickOnBounds="true" preserveRatio="true" visible="false">
+                    <image>
+                        <Image url="@../Images/LoginForm/frame.png" />
+                    </image>
+                </ImageView>
+                <Button fx:id="chooseHouseBtn" layoutX="295.0" layoutY="644.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Choose">
+                    <font>
+                        <Font name="Harry P" size="29.0" />
+                    </font>
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Button>
+                <ImageView fx:id="HouseSelected" fitHeight="172.0" fitWidth="148.0" layoutX="1023.0" layoutY="485.0" pickOnBounds="true" preserveRatio="true" />
+                <Button fx:id="continuebtn" layoutX="300.0" layoutY="611.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Continue" visible="false">
+                    <font>
+                        <Font name="Harry P" size="35.0" />
+                    </font>
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Button>
+            </children>
+        </Pane>
+        <Pane fx:id="signupPane" prefHeight="200.0" prefWidth="200.0">
+            <children>
+                <ImageView fitHeight="916.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/library.gif" />
+                    </image>
+                </ImageView>
+                <ImageView fx:id="hat" fitHeight="134.0" fitWidth="120.0" layoutX="1124.0" layoutY="571.0" pickOnBounds="true" preserveRatio="true" visible="false">
+                    <image>
+                        <Image url="@../Images/LoginForm/hat.png" />
+                    </image>
+                </ImageView>
+                <Button fx:id="goSortBtn" layoutX="1149.0" layoutY="591.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="93.0" prefWidth="63.0" styleClass="sorting-btn" text=".">
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor></Button>
+                <Label layoutX="51.0" layoutY="45.0" prefHeight="17.0" prefWidth="510.0" text="What shall we call you, muggle?" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="37.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="nameField" layoutX="51.0" layoutY="103.0" prefHeight="35.0" prefWidth="410.0" promptText="Forget your fullname. You're a wizard, Harry!" styleClass="login-fields">
+                    <font>
+                        <Font name="Harry P" size="19.0" />
+                    </font>
+                </TextField>
+                <Label layoutX="51.0" layoutY="172.0" text="A password that you can't be obliviated !" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="37.0" />
+                    </font>
+                </Label>
+                <PasswordField fx:id="signupPassField" layoutX="51.0" layoutY="232.0" prefHeight="35.0" prefWidth="410.0" promptText="It's Levio-sa, not Leviosaaaa" styleClass="login-fields">
+                    <font>
+                        <Font name="Harry P" size="19.0" />
+                    </font>
+                </PasswordField>
+                <Label layoutX="51.0" layoutY="317.0" prefHeight="43.0" prefWidth="686.0" text="What's your Potterhead address?(Email for filthy mudbloods...)" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="37.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="emailField" layoutX="51.0" layoutY="385.0" prefHeight="35.0" prefWidth="410.0" promptText="My father's gonna hear about this!" styleClass="login-fields">
+                    <font>
+                        <Font name="Harry P" size="19.0" />
+                    </font>
+                </TextField>
+                <Label layoutX="51.0" layoutY="451.0" prefHeight="43.0" prefWidth="686.0" text="Are you by any chance an underage wizard/witch? 😒" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="37.0" />
+                    </font>
+                </Label>
+                <DatePicker fx:id="DOBPicker" layoutX="51.0" layoutY="519.0" prefHeight="35.0" prefWidth="269.0" styleClass="login-fields" />
+                <Label layoutX="511.0" layoutY="606.0" prefHeight="43.0" prefWidth="686.0" text="Are you sure I haven't seen you before?  🤔" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="25.0" />
+                    </font>
+                </Label>
+                <Hyperlink fx:id="oldUser" layoutX="571.0" layoutY="653.0" onAction="#handleHyperLink" text="If yes, then go back and login!">
+                    <font>
+                        <Font name="Harry P" size="21.0" />
+                    </font>
+                </Hyperlink>
+                <Button fx:id="submitUser" layoutX="51.0" layoutY="631.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="43.0" prefWidth="148.0" styleClass="login-btn" text="Ready ?">
+                    <font>
+                        <Font name="Harry P" size="40.0" />
+                    </font>
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Button>
+                <Label layoutX="1003.0" layoutY="613.0" text="Don't forget!  !" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="24.0" />
+                    </font>
+                </Label>
+                <Label layoutX="1006.0" layoutY="641.0" text="Get sorted ---&gt;" textFill="#dfd51a">
+                    <font>
+                        <Font name="Harry P" size="24.0" />
+                    </font>
+                </Label>
+                <Label layoutX="819.0" layoutY="67.0" prefHeight="43.0" prefWidth="454.0" text="Your house is --&gt;" textFill="#dfd51a" visible="false">
+                    <font>
+                        <Font name="Harry P" size="37.0" />
+                    </font>
+                </Label>
+                <Label layoutX="819.0" layoutY="139.0" prefHeight="43.0" prefWidth="454.0" text="Your Patronus " textFill="#dfd51a" visible="false">
+                    <font>
+                        <Font name="Harry P" size="37.0" />
+                    </font>
+                </Label>
+                <ImageView fx:id="profilePic" fitHeight="120.0" fitWidth="108.0" layoutX="1088.0" layoutY="95.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/deathly hallows.gif" />
+                    </image></ImageView>
+                <ImageView fx:id="profilePicFrame" fitHeight="172.0" fitWidth="169.0" layoutX="1069.0" layoutY="67.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/frame.png" />
+                    </image>
+                </ImageView>
+                <Button fx:id="selectDP" layoutX="1103.0" layoutY="101.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="101.0" prefWidth="90.0" styleClass="sorting-btn" text="." />
+            </children>
+        </Pane>
+        <Pane fx:id="loginPane" prefHeight="720.0" prefWidth="1280.0">
+            <children>
+                <ImageView fitHeight="832.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/train.gif" />
+                    </image>
+                </ImageView>
+                <PasswordField fx:id="loginPass" layoutX="460.0" layoutY="335.0" prefHeight="34.0" prefWidth="367.0" promptText="Password ??" styleClass="login-fields">
+                    <font>
+                        <Font name="Harry P" size="25.0" />
+                    </font>
+                </PasswordField>
+                <TextField fx:id="loginUser" layoutX="458.0" layoutY="269.0" prefHeight="39.0" prefWidth="367.0" promptText="What're ya called, Wizard?" styleClass="login-fields">
+                    <font>
+                        <Font name="Harry P" size="25.0" />
+                    </font>
+                </TextField>
+                <Button fx:id="loginBtn" layoutX="530.0" layoutY="417.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Enter Hogwarts">
+                    <font>
+                        <Font name="Harry P" size="40.0" />
+                    </font>
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Button>
+                <Hyperlink fx:id="forgotPass" layoutX="22.0" layoutY="658.0" onAction="#handleHyperLink" styleClass="hyper-links" text="Forgot password? ">
+                    <font>
+                        <Font name="Harry P" size="22.0" />
+                    </font>
+                </Hyperlink>
+                <Hyperlink fx:id="newUser" layoutX="1125.0" layoutY="650.0" onAction="#handleHyperLink" styleClass="hyper-links" text="Ya newbie ?">
+                    <font>
+                        <Font name="Harry P" size="28.0" />
+                    </font>
+                </Hyperlink>
+            </children>
+        </Pane>
+        <Pane fx:id="recoveryPane" prefHeight="200.0" prefWidth="200.0" visible="false">
+            <children>
+                <ImageView fitHeight="917.0" fitWidth="1290.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/commonroom.gif" />
+                    </image>
+                </ImageView>
+                <Pane fx:id="filterpane" prefHeight="720.0" prefWidth="1280.0" styleClass="filter-pane" visible="false" />
+                <Label fx:id="houseQuesResetPass" layoutX="77.0" layoutY="188.0" prefHeight="33.0" prefWidth="222.0" textFill="#f2db2c">
+                    <font>
+                        <Font name="Harry P" size="28.0" />
+                    </font>
+                </Label>
+                <Label layoutX="46.0" layoutY="27.0" text="What is your email, muggle?" textFill="#f2db2c">
+                    <font>
+                        <Font name="Harry P" size="28.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="forgotPassUser" layoutX="46.0" layoutY="71.0" prefHeight="25.0" prefWidth="288.0" promptText="Your email" styleClass="login-fields">
+                    <font>
+                        <Font name="Harry P" size="19.0" />
+                    </font>
+                </TextField>
+                <Button fx:id="submitResetUser" layoutX="128.0" layoutY="116.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Go!">
+                    <font>
+                        <Font name="Harry P" size="40.0" />
+                    </font>
+                </Button>
+                <Label fx:id="foundornotfound" layoutX="426.0" layoutY="81.0" text="Not found !!" textFill="#f22727" visible="false">
+                    <font>
+                        <Font name="Harry P" size="25.0" />
+                    </font>
+                </Label>
+                <PasswordField fx:id="newPass" layoutX="539.0" layoutY="477.0" prefHeight="36.0" prefWidth="218.0" promptText="Enter new password" styleClass="login-fields" visible="false">
+                    <font>
+                        <Font name="Harry P" size="19.0" />
+                    </font>
+                </PasswordField>
+                <PasswordField fx:id="confirmnewPass" layoutX="543.0" layoutY="532.0" prefHeight="36.0" prefWidth="218.0" promptText="Confirm new password" styleClass="login-fields" visible="false">
+                    <font>
+                        <Font name="Harry P" size="19.0" />
+                    </font>
+                </PasswordField>
+                <Button fx:id="submitResetPass" layoutX="598.0" layoutY="600.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="64.0" prefWidth="119.0" styleClass="login-btn" text="Go!" visible="false">
+                    <font>
+                        <Font name="Harry P" size="45.0" />
+                    </font>
+                </Button>
+                <Button fx:id="back_btn" layoutX="38.0" layoutY="600.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="&lt;--">
+                    <font>
+                        <Font name="Harry P" size="20.0" />
+                    </font></Button>
+            <TextField fx:id="secretCodeField" layoutX="547.0" layoutY="389.0" prefHeight="25.0" prefWidth="201.0" promptText="Secret Code" styleClass="login-fields" visible="false" />
+            </children></Pane>
+        <Pane fx:id="alertpane" prefHeight="480.0" prefWidth="640.0" visible="false">
+            <children>
+                <ImageView fx:id="alertimg" fitHeight="515.0" fitWidth="498.0" layoutX="390.0" layoutY="95.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/parchment-removebg-preview.png" />
+                    </image></ImageView>
+                <Label fx:id="alertheading" layoutX="504.0" layoutY="198.0" prefHeight="101.0" prefWidth="240.0">
+                    <font>
+                        <Font name="Harry P" size="35.0" />
+                    </font>
+                </Label>
+                <Label fx:id="alertbody" layoutX="503.0" layoutY="309.0" prefHeight="165.0" prefWidth="232.0">
+                    <font>
+                        <Font name="Harry P" size="26.0" />
+                    </font>
+                </Label>
+                <Button fx:id="alrightbtn" layoutX="558.0" layoutY="499.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="alert-btn" text="Alright">
+                    <font>
+                        <Font name="Harry P" size="18.0" />
+                    </font>
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Button>
+            </children>
+        </Pane>
+    </children>
+</StackPane>

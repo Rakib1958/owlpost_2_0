@@ -1,0 +1,70 @@
+.main-pane {
+    -fx-font-family: "Harry P";
+    -fx-effect: dropshadow(gaussian, black, 4, 0.5, 1,1);
+}
+
+.filter-pane {
+    -fx-background-color: linear-gradient(to bottom right, #0D335E, #2F3A46);
+    -fx-opacity: 0.6;
+}
+
+.sorting-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: transparent;
+    -fx-effect: dropshadow(gaussian, #000000aa, 6, 0.6, 0, 2);
+}
+
+.login-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #dfd51a;
+}
+
+.login-btn: hover {
+    -fx-text-fill: #FFFF7F;
+}
+
+.login-btn: focused {
+    -fx-text-fill: #ffffff;
+}
+
+.hyper-links {
+    -fx-border-radius: 0;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+}
+
+.hyper-links: hover {
+    -fx-text-fill: #F2E8B0;
+}
+
+.hyper-links: armed {
+    -fx-text-fill: #E3950D;
+}
+
+.hyper-links: visited {
+    -fx-text-fill: #FF2A00;
+}
+
+.login-fields {
+    -fx-background-color: rgba(180, 180, 180, 0.3);
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent transparent white transparent;
+    -fx-border-radius: 8;
+}
+
+.login-fields: hover {
+    -fx-background-color: rgba(50, 50, 50, 0.45);
+}
+
+.login-fields: focused {
+    -fx-border-color: white white white white;
+    -fx-border-radius: 4;
+}
+
+.alert-btn {
+    -fx-background-color: transparent;
+    -fx-font-family: "Harry P";
+    -fx-text-fill: black;
+    -fx-font-size: 25px;
+}

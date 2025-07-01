@@ -5,7 +5,7 @@ import javafx.scene.media.MediaPlayer;
 
 public class Audios {
     private static Media ambience = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/Ambience.mp3").toExternalForm());
-    private static Media BGM = new Media(Audios.class.getResource("/com/example/chatapp/Music/BGM.mp3").toExternalForm());
+    private static Media BGM = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/BGM.mp3").toExternalForm());
 
     private static MediaPlayer ambiencePlayer = new MediaPlayer(ambience);
     private static MediaPlayer BGMPlayer = new MediaPlayer(BGM);
@@ -36,7 +36,7 @@ public class Audios {
     }
 
     public static void playSound(String sound) {
-        Media media = new Media(Audios.class.getResource("/com/example/chatapp/Music/" + sound + ".mp3").toExternalForm());
+        Media media = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/" + sound + ".mp3").toExternalForm());
         MediaPlayer mediaPlayer = new MediaPlayer(media);
         if (sound.equals("spell")) {
             mediaPlayer.setVolume(0.25);

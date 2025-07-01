@@ -6,9 +6,7 @@
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.Pane?>
@@ -57,7 +55,7 @@
                         <Image url="@../Images/LoginForm/library.gif" />
                     </image>
                 </ImageView>
-                <ImageView fitHeight="134.0" fitWidth="120.0" layoutX="1124.0" layoutY="571.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fx:id="hat" fitHeight="134.0" fitWidth="120.0" layoutX="1124.0" layoutY="571.0" pickOnBounds="true" preserveRatio="true" visible="false">
                     <image>
                         <Image url="@../Images/LoginForm/hat.png" />
                     </image>
@@ -202,41 +200,16 @@
                         <Font name="Harry P" size="28.0" />
                     </font>
                 </Label>
-                <ImageView fx:id="gryfLogo" fitHeight="99.0" fitWidth="77.0" layoutX="38.0" layoutY="225.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@../Images/LoginForm/gryffindor-logo.png" />
-                    </image>
-                </ImageView>
-                <ImageView fx:id="slytLogo" fitHeight="85.0" fitWidth="108.0" layoutX="247.0" layoutY="233.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@../Images/LoginForm/slytherin-logo.png" />
-                    </image>
-                </ImageView>
-                <ImageView fx:id="HuflLogo" fitHeight="72.0" fitWidth="69.0" layoutX="121.0" layoutY="225.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@../Images/LoginForm/hufflepuff-logo.png" />
-                    </image>
-                </ImageView>
-                <ImageView fx:id="RavenLogo" fitHeight="61.0" fitWidth="63.0" layoutX="194.0" layoutY="233.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@../Images/LoginForm/ravenclaw-logo.png" />
-                    </image>
-                </ImageView>
-                <Label layoutX="46.0" layoutY="27.0" text="What are ye called, muggle?" textFill="#f2db2c">
+                <Label layoutX="46.0" layoutY="27.0" text="What is your email, muggle?" textFill="#f2db2c">
                     <font>
                         <Font name="Harry P" size="28.0" />
                     </font>
                 </Label>
-                <TextField fx:id="forgotPassUser" layoutX="46.0" layoutY="71.0" prefHeight="25.0" prefWidth="288.0" promptText="Your username" styleClass="login-fields">
+                <TextField fx:id="forgotPassUser" layoutX="46.0" layoutY="71.0" prefHeight="25.0" prefWidth="288.0" promptText="Your email" styleClass="login-fields">
                     <font>
                         <Font name="Harry P" size="19.0" />
                     </font>
                 </TextField>
-                <Label fx:id="Doesntmatch" layoutX="385.0" layoutY="201.0" text="Doesn't Match!! Who are you?" textFill="#ef2a2a" visible="false">
-                    <font>
-                        <Font name="Harry P" size="28.0" />
-                    </font>
-                </Label>
                 <Button fx:id="submitResetUser" layoutX="128.0" layoutY="116.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Go!">
                     <font>
                         <Font name="Harry P" size="40.0" />
@@ -266,14 +239,7 @@
                     <font>
                         <Font name="Harry P" size="20.0" />
                     </font></Button>
-                <RadioButton fx:id="gryffindor" layoutX="60.0" layoutY="242.0" mnemonicParsing="false" onAction="#isHouseButton" opacity="0.34" prefHeight="52.0" prefWidth="28.0" visible="false">
-                    <toggleGroup>
-                        <ToggleGroup fx:id="houseGroup" />
-                    </toggleGroup>
-                </RadioButton>
-                <RadioButton fx:id="hufflepuff" layoutX="140.0" layoutY="238.0" mnemonicParsing="false" onAction="#isHouseButton" opacity="0.4" prefHeight="52.0" prefWidth="28.0" toggleGroup="$houseGroup" visible="false" />
-                <RadioButton fx:id="ravenclaw" layoutX="211.0" layoutY="235.0" mnemonicParsing="false" onAction="#isHouseButton" opacity="0.45" prefHeight="52.0" prefWidth="28.0" toggleGroup="$houseGroup" visible="false" />
-                <RadioButton fx:id="slytherin" layoutX="287.0" layoutY="238.0" mnemonicParsing="false" onAction="#isHouseButton" opacity="0.46" prefHeight="52.0" prefWidth="28.0" toggleGroup="$houseGroup" visible="false" />
+            <TextField fx:id="secretCodeField" layoutX="547.0" layoutY="389.0" prefHeight="25.0" prefWidth="201.0" promptText="Secret Code" styleClass="login-fields" visible="false" />
             </children></Pane>
         <Pane fx:id="alertpane" prefHeight="480.0" prefWidth="640.0" visible="false">
             <children>
