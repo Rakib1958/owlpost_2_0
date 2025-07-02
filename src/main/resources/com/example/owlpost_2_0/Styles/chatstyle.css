@@ -1,0 +1,49 @@
+/* OPTION 1: Background on base pane */
+.slytherin-background {
+
+}
+
+/* Make everything transparent */
+.left-scroll {
+    -fx-background-color: transparent;
+}
+
+.friends-list {
+    -fx-background-color: transparent;
+}
+
+.header-user {
+    -fx-background-color: #000000;
+    -fx-text-fill: #ffffff;
+}
+
+.anchor {
+    -fx-font-size: 18;
+}
+
+.sending-btn {
+    -fx-background-color: transparent;
+    -fx-border-radius: 10;
+}
+
+.send-msg {
+    -fx-border-size: 0.5;
+    -fx-border-radius: 20;
+}
+
+.text-fields {
+    -fx-background-color: rgba(180, 180, 180, 0.3);
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent transparent white transparent;
+    -fx-border-radius: 8;
+}
+
+.text-fields: hover {
+    -fx-background-color: rgba(50, 50, 50, 0.45);
+}
+
+.text-fields: focused {
+    -fx-border-color: white white white white;
+    -fx-border-radius: 4;
+}

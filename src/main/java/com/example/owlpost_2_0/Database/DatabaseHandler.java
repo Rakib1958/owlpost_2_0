@@ -1,10 +1,14 @@
 package com.example.owlpost_2_0.Database;
 
+import com.example.owlpost_2_0.ChatRoom.ChatMessage;
 import com.example.owlpost_2_0.Client.Client;
 import javafx.scene.image.Image;
 
 import java.io.*;
 import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseHandler {
     private static final String DB_URL = "jdbc:sqlite:owlpost.db";
@@ -14,6 +18,7 @@ public class DatabaseHandler {
     private DatabaseHandler() {
         connect();
         createUserTable();
+        createChatHistoryTable(); // Add this line
     }
 
     public static DatabaseHandler getInstance() {
@@ -47,6 +52,26 @@ public class DatabaseHandler {
             stmt.execute(sql);
         } catch (SQLException e) {
             System.out.println("Table creation failed: " + e.getMessage());
+        }
+    }
+
+    private void createChatHistoryTable() {
+        String sql = """
+        CREATE TABLE IF NOT EXISTS chat_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender TEXT NOT NULL,
+            receiver TEXT NOT NULL,
+            content TEXT,
+            is_file INTEGER,
+            file_name TEXT,
+            file_data BLOB,
+            timestamp TEXT
+        );
+        """;
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            System.out.println("Chat history table creation failed: " + e.getMessage());
         }
     }
 
@@ -91,6 +116,10 @@ public class DatabaseHandler {
                 client.setDateofbirth(Date.valueOf(rs.getString("date_of_birth")).toLocalDate());
                 client.setHouse(rs.getString("house"));
                 client.setPatronus(rs.getString("patronus"));
+
+                // Set profile picture path to a special identifier for BLOB data
+                client.setProfilePicturePath("BLOB:" + username);
+
                 return client;
             }
         } catch (SQLException e) {
@@ -183,6 +212,10 @@ public class DatabaseHandler {
                 client.setDateofbirth(Date.valueOf(rs.getString("date_of_birth")).toLocalDate());
                 client.setHouse(rs.getString("house"));
                 client.setPatronus(rs.getString("patronus"));
+
+                // Set profile picture path to a special identifier for BLOB data
+                client.setProfilePicturePath("BLOB:" + rs.getString("username"));
+
                 return client;
             }
         } catch (SQLException e) {
@@ -209,5 +242,95 @@ public class DatabaseHandler {
         } catch (SQLException e) {
             System.out.println("Connection close failed: " + e.getMessage());
         }
+    }
+
+    public boolean saveChatMessage(ChatMessage msg) {
+        String sql = """
+        INSERT INTO chat_history 
+        (sender, receiver, content, is_file, file_name, file_data, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'));
+        """;
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, msg.getSender());
+            pstmt.setString(2, msg.getReceiver());
+            pstmt.setString(3, msg.isFile() ? null : msg.getContent());
+            pstmt.setInt(4, msg.isFile() ? 1 : 0);
+            pstmt.setString(5, msg.isFile() ? msg.getFileName() : null);
+            pstmt.setBytes(6, msg.isFile() ? msg.getFileData() : null);
+
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error saving chat message: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<ChatMessage> loadChatHistory(String user1, String user2) {
+        List<ChatMessage> messages = new ArrayList<>();
+        String sql = """
+        SELECT * FROM chat_history
+        WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)
+        ORDER BY id ASC;
+        """;
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, user1);
+            pstmt.setString(2, user2);
+            pstmt.setString(3, user2);
+            pstmt.setString(4, user1);
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String sender = rs.getString("sender");
+                String receiver = rs.getString("receiver");
+                boolean isFile = rs.getInt("is_file") == 1;
+
+                ChatMessage msg;
+                if (isFile) {
+                    msg = new ChatMessage(sender, receiver,
+                            rs.getString("file_name"),
+                            rs.getBytes("file_data"));
+                } else {
+                    msg = new ChatMessage(sender, receiver,
+                            rs.getString("content"));
+                }
+
+                messages.add(msg);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error loading chat history: " + e.getMessage());
+        }
+
+        return messages;
+    }
+
+    public List<Client> loadUsers() {
+        List<Client> users = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Client client = new Client();
+                client.setUsername(rs.getString("username"));
+                client.setPassword(rs.getString("password"));
+                client.setEmail(rs.getString("email"));
+                // Fix: Use correct column name
+                client.setDateofbirth(LocalDate.parse(rs.getString("date_of_birth")));
+                client.setHouse(rs.getString("house"));
+                client.setPatronus(rs.getString("patronus"));
+
+                // Set profile picture path to a special identifier for BLOB data
+                client.setProfilePicturePath("BLOB:" + rs.getString("username"));
+
+                users.add(client);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error loading users: " + e.getMessage());
+        }
+
+        return users;
     }
 }

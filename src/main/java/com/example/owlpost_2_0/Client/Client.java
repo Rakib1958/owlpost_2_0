@@ -144,4 +144,8 @@ public class Client {
     public int hashCode() {
         return Objects.hash(username);
     }
+
+    public void setProfilePicPath(String profilepic) {
+        this.profilePicturePath = profilepic;
+    }
 }

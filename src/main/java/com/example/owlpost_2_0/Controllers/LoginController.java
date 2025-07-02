@@ -417,6 +417,14 @@ public class LoginController implements Initializable {
 
         chooseHouseBtn.setVisible(false);
         continuebtn.setVisible(true);
+        if (selectedDP != null && selectedDP.exists()) {
+            boolean registered = dbHandler.registerUser(client, selectedDP);
+            if (registered) {
+                System.out.println("User registered successfully after sorting!");
+            } else {
+                System.err.println("Failed to register user after sorting!");
+            }
+        }
         // Let user admire their results for 3 seconds, then show continue option
         javafx.animation.Timeline displayTimer = new javafx.animation.Timeline(
                 new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3), e -> {
