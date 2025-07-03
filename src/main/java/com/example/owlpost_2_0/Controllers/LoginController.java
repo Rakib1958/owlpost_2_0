@@ -611,5 +611,11 @@ public class LoginController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         dbHandler = DatabaseHandler.getInstance();
 
+//        Animations.leftRight((signupPane));
+//        Animations.leftRight((loginPane));
+//        Animations.leftRight((sortingPane));
+//        Animations.leftRight((recoveryPane));
+
+
     }
 }
