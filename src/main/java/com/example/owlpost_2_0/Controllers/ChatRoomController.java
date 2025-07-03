@@ -207,6 +207,7 @@ public class ChatRoomController implements Initializable {
 
     private Node buildTextBubble(ChatMessage msg) {
         Label label = new Label(msg.getContent());
+
         label.setWrapText(true);
         label.setMaxWidth(300);
         if (msg.getSender().equals(client.getUsername())) {
