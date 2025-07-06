@@ -970,22 +970,20 @@ public class ChatRoomController implements Initializable {
 
         setCircularImage(userImage, userImageClip, userProfileImage);
 
-//        ImageView backgroundImageView = new ImageView();
-//        backgroundImageView.setImage(new Image(getClass().getResource("/com/example/owlpost_2_0/Images/LoginForm/slytherin.gif").toExternalForm()));
-//        backgroundImageView.setFitWidth(319);
-//        backgroundImageView.setFitHeight(630);
-//        backgroundImageView.setLayoutY(100);
-//        backgroundImageView.setPreserveRatio(false);
+        ImageView backgroundImageView = new ImageView();
+        backgroundImageView.setImage(new Image(getClass().getResource("/com/example/owlpost_2_0/Images/LoginForm/slytherin.gif").toExternalForm()));
+        backgroundImageView.setFitWidth(319);
+        backgroundImageView.setFitHeight(630);
+        backgroundImageView.setLayoutY(100);
+        backgroundImageView.setPreserveRatio(false);
 
-        //leftbase.getChildren().add(0, backgroundImageView);
+        leftbase.getChildren().add(0, backgroundImageView);
         leftpane.setStyle(
                 "-fx-background-color: #2c3e50; " +  // Dark blue-gray background
                         "-fx-background-radius: 10; " +
                         "-fx-padding: 10;"
         );
-        friendslist.setStyle("-fx-background-color: rgba(52, 73, 94, 0.8); " +  // Semi-transparent dark
-                "-fx-padding: 10; " +
-                "-fx-spacing: 5;");
+        friendslist.setStyle("-fx-background-color: rgba(0,0,0,0.3); " + "-fx-padding: 10;");
         UpdateBG();
         setUpBackgroundTimer();
 
@@ -1079,10 +1077,6 @@ public class ChatRoomController implements Initializable {
     }
 
     private void styleFriendCard(HBox card, Client c) {
-        card.setStyle("-fx-background-color: rgba(255,255,255,0.1); " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand; " +
-                "-fx-padding: 5;");
         card.setOnMouseClicked(e -> {
             currentReceiver = c.getUsername();
             msgbox.getChildren().clear();
