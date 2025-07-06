@@ -49,11 +49,13 @@
                         <Pane prefHeight="713.0" prefWidth="607.0">
                             <children>
                                 <ImageView fx:id="chatBG" fitHeight="569.0" fitWidth="607.0" layoutY="98.0" pickOnBounds="true" preserveRatio="true" />
-                                <ScrollPane fx:id="chatScroll" hbarPolicy="NEVER" layoutY="98.0" prefHeight="569.0" prefWidth="607.0">
+                                <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" layoutY="98.0" prefHeight="569.0" prefWidth="607.0">
                                     <content>
-                                        <VBox fx:id="msgbox" prefHeight="566.0" prefWidth="617.0" />
+                                        <VBox fx:id="msgbox" prefWidth="617.0" />
                                     </content>
                                 </ScrollPane>
+                                <StackPane fx:id="callOverlay" layoutY="98.0" prefHeight="569.0" prefWidth="607.0" visible="false"
+                                           style="-fx-background-color: rgba(0, 0, 0, 0.8);" />
                                 <HBox fx:id="clientCard" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="607.0" spacing="10.0" styleClass="header-user">
                                     <children>
                                         <ImageView fx:id="clientImage" fitHeight="64.0" fitWidth="64.0">

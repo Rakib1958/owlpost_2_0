@@ -239,7 +239,7 @@
                     <font>
                         <Font name="Harry P" size="20.0" />
                     </font></Button>
-            <TextField fx:id="secretCodeField" layoutX="547.0" layoutY="389.0" prefHeight="25.0" prefWidth="201.0" promptText="Secret Code" styleClass="login-fields" visible="false" />
+                <TextField fx:id="secretCodeField" layoutX="547.0" layoutY="389.0" prefHeight="25.0" prefWidth="201.0" promptText="Secret Code" styleClass="login-fields" visible="false" />
             </children></Pane>
         <Pane fx:id="alertpane" prefHeight="480.0" prefWidth="640.0" visible="false">
             <children>
