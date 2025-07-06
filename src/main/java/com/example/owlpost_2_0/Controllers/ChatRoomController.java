@@ -338,9 +338,15 @@ public class ChatRoomController implements Initializable {
     // Call handling methods
     private void handleIncomingAudioCall(String caller) {
         Platform.runLater(() -> {
+            // Don't show incoming call UI if we are the caller
+            if (caller.equals(client.getUsername())) {
+                return;
+            }
+
             currentCaller = caller;
             isAudioCall = true;
             isVideoCall = false;
+            isOutgoingCall = false; // Add this line - we're receiving, not making a call
 
             // Update caller info
             callStatusLabel.setText("Audio Call");
@@ -359,9 +365,15 @@ public class ChatRoomController implements Initializable {
 
     private void handleIncomingVideoCall(String caller) {
         Platform.runLater(() -> {
+            // Don't show incoming call UI if we are the caller
+            if (caller.equals(client.getUsername())) {
+                return;
+            }
+
             currentCaller = caller;
             isAudioCall = false;
             isVideoCall = true;
+            isOutgoingCall = false; // Add this line - we're receiving, not making a call
 
             // Update caller info
             callStatusLabel.setText("Video Call");
@@ -384,7 +396,7 @@ public class ChatRoomController implements Initializable {
         activeCallUI.setVisible(false);
 
         // Play incoming call sound
-        Audios.playSound("incoming_call");
+        //Audios.playSound("incoming_call");
     }
 
     private void showActiveCallUI() {
@@ -409,6 +421,11 @@ public class ChatRoomController implements Initializable {
 
     private void showOutgoingCallUI(String callType) {
         Platform.runLater(() -> {
+            // Only show outgoing call UI if this is actually an outgoing call
+            if (!isOutgoingCall) {
+                return; // Don't show outgoing UI if we're not the ones making the call
+            }
+
             callOverlay.setVisible(true);
             outgoingCallUI.setVisible(true);
             incomingCallUI.setVisible(false);
@@ -452,7 +469,11 @@ public class ChatRoomController implements Initializable {
             currentReceiver = currentCaller;
             isInCall = true;
 
-
+            if (isAudioCall) {
+                startAudioCall();
+            } else if (isVideoCall) {
+                startVideoCall();
+            }
 
             showActiveCallUI();
 
@@ -626,7 +647,7 @@ public class ChatRoomController implements Initializable {
             chatClient.sendMessage(callMsg);
 
             // Start ringing sound
-            Audios.playSound("outgoing_call");
+            //Audios.playSound("outgoing_call");
 
         } catch (Exception e) {
             System.err.println("Error initiating audio call: " + e.getMessage());
@@ -670,7 +691,7 @@ public class ChatRoomController implements Initializable {
             ChatMessage msg = new ChatMessage(client.getUsername(), currentReceiver, content);
             chatClient.sendMessage(msg);
             msgField.clear();
-
+            showMessageInChat(msg);
             DatabaseHandler.getInstance().saveChatMessage(msg);
         }
     }
@@ -722,6 +743,11 @@ public class ChatRoomController implements Initializable {
         } else if (msg.getContent().equals("CALL_ACCEPTED")) {
             Platform.runLater(() -> {
                 isInCall = true;
+                // Hide outgoing call UI since call was accepted
+                if (outgoingCallUI != null) {
+                    outgoingCallUI.setVisible(false);
+                }
+
                 if (isAudioCall) {
                     startAudioCall();
                 } else if (isVideoCall) {
@@ -934,7 +960,6 @@ public class ChatRoomController implements Initializable {
 
 
 
-    // initialize the clients other than the initialize method
     public void getClient(Client client) {
         this.client = client;
         System.out.println("Got client");
@@ -945,23 +970,22 @@ public class ChatRoomController implements Initializable {
 
         setCircularImage(userImage, userImageClip, userProfileImage);
 
-        ImageView backgroundImageView = new ImageView();
-        backgroundImageView.setImage(new Image(getClass().getResource("/com/example/owlpost_2_0/Images/LoginForm/slytherin.gif").toExternalForm()));
-        backgroundImageView.setFitWidth(319);
-        backgroundImageView.setFitHeight(630);
-        backgroundImageView.setLayoutY(100);
-        backgroundImageView.setPreserveRatio(false);
+//        ImageView backgroundImageView = new ImageView();
+//        backgroundImageView.setImage(new Image(getClass().getResource("/com/example/owlpost_2_0/Images/LoginForm/slytherin.gif").toExternalForm()));
+//        backgroundImageView.setFitWidth(319);
+//        backgroundImageView.setFitHeight(630);
+//        backgroundImageView.setLayoutY(100);
+//        backgroundImageView.setPreserveRatio(false);
 
-        leftbase.getChildren().add(0, backgroundImageView);
+        //leftbase.getChildren().add(0, backgroundImageView);
         leftpane.setStyle(
-                "-fx-background-color: transparent; " +
-                        "-fx-background: transparent; " +
-                        "-fx-background-insets: 0; " +
-                        "-fx-padding: 0;"
+                "-fx-background-color: #2c3e50; " +  // Dark blue-gray background
+                        "-fx-background-radius: 10; " +
+                        "-fx-padding: 10;"
         );
-
-        // Make sure VBox is also transparent
-        friendslist.setStyle("-fx-background-color: transparent;");
+        friendslist.setStyle("-fx-background-color: rgba(52, 73, 94, 0.8); " +  // Semi-transparent dark
+                "-fx-padding: 10; " +
+                "-fx-spacing: 5;");
         UpdateBG();
         setUpBackgroundTimer();
 
@@ -1047,11 +1071,18 @@ public class ChatRoomController implements Initializable {
         setCircularImage(img, clip, friendImage);
 
         Label name = new Label(c.getUsername());
+        name.setStyle("-fx-text-fill: white; " +  // Make text white
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 14px;");
         card.getChildren().addAll(img, name);
         return card;
     }
 
     private void styleFriendCard(HBox card, Client c) {
+        card.setStyle("-fx-background-color: rgba(255,255,255,0.1); " +
+                "-fx-background-radius: 10; " +
+                "-fx-cursor: hand; " +
+                "-fx-padding: 5;");
         card.setOnMouseClicked(e -> {
             currentReceiver = c.getUsername();
             msgbox.getChildren().clear();
@@ -1066,9 +1097,11 @@ public class ChatRoomController implements Initializable {
         // Hover effects
         card.setOnMouseEntered(e -> {
             if (!c.getUsername().equals(currentReceiver)) {
-                card.setStyle("-fx-background-color: rgba(255,255,255,0.2); " +
+                card.setStyle("-fx-background-color: rgba(255,255,255,0.6); " +  // Higher opacity
                         "-fx-background-radius: 10; " +
-                        "-fx-cursor: hand;");
+                        "-fx-cursor: hand; " +
+                        "-fx-border-color: rgba(255,255,255,0.8); " +
+                        "-fx-border-width: 2;");
             }
         });
 

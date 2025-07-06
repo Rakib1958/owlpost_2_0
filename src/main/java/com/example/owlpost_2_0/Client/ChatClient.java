@@ -57,39 +57,39 @@ public class ChatClient {
         }).start();
     }
 
-    // Send call initiation signal
-    public void initiateCall(String receiverUsername, String callType) throws Exception {
-        if (isConnected) {
-            ChatMessage callMsg = new ChatMessage(username, receiverUsername, callType);
-            sendMessage(callMsg);
-        }
-    }
-
-    // Send call response signal
-    public void respondToCall(String callerUsername, String response) throws Exception {
-        if (isConnected) {
-            ChatMessage responseMsg = new ChatMessage(username, callerUsername, response);
-            sendMessage(responseMsg);
-        }
-    }
-
-    // Send call end signal
-    public void endCall(String otherUsername) throws Exception {
-        if (isConnected) {
-            ChatMessage endMsg = new ChatMessage(username, otherUsername, "CALL_ENDED");
-            sendMessage(endMsg);
-        }
-    }
-
-    // Get connection status
-    public boolean isConnected() {
-        return isConnected && socket != null && !socket.isClosed();
-    }
-
-    // Get username
-    public String getUsername() {
-        return username;
-    }
+//    // Send call initiation signal
+//    public void initiateCall(String receiverUsername, String callType) throws Exception {
+//        if (isConnected) {
+//            ChatMessage callMsg = new ChatMessage(username, receiverUsername, callType);
+//            sendMessage(callMsg);
+//        }
+//    }
+//
+//    // Send call response signal
+//    public void respondToCall(String callerUsername, String response) throws Exception {
+//        if (isConnected) {
+//            ChatMessage responseMsg = new ChatMessage(username, callerUsername, response);
+//            sendMessage(responseMsg);
+//        }
+//    }
+//
+//    // Send call end signal
+//    public void endCall(String otherUsername) throws Exception {
+//        if (isConnected) {
+//            ChatMessage endMsg = new ChatMessage(username, otherUsername, "CALL_ENDED");
+//            sendMessage(endMsg);
+//        }
+//    }
+//
+//    // Get connection status
+//    public boolean isConnected() {
+//        return isConnected && socket != null && !socket.isClosed();
+//    }
+//
+//    // Get username
+//    public String getUsername() {
+//        return username;
+//    }
 
     public void disconnect() {
         try {
