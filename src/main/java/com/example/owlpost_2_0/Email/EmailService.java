@@ -12,7 +12,7 @@ import jakarta.mail.internet.MimeMessage;
 
 public class EmailService {
     private static final String EMAIL_FROM = "rakibcdt1958@gmail.com";
-//    private static final String EMAIL_TO = "witchergeralt1969@gmail.com";
+    //    private static final String EMAIL_TO = "witchergeralt1969@gmail.com";
     private static final String APP_PASSWORD = "alqt chng ngny jqxg";
 
     public static int sendEmail(String EMAIL_TO) throws Exception {

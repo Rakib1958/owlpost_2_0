@@ -131,7 +131,7 @@ public class LoginController implements Initializable {
     private File selectedDP;
     private String selectedHouse;
     private String selectedPatronus;
-//    private String pendingResetEmail;
+    //    private String pendingResetEmail;
     String[] houseMessages = {
             "\"Brave of heart and bold of spirit... GRYFFINDOR!\"",
             "\"Loyal, patient, and true... HUFFLEPUFF!\"",
@@ -611,11 +611,9 @@ public class LoginController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         dbHandler = DatabaseHandler.getInstance();
 
-//        Animations.leftRight((signupPane));
-//        Animations.leftRight((loginPane));
-//        Animations.leftRight((sortingPane));
-//        Animations.leftRight((recoveryPane));
-
-
+        Animations.leftRight((signupPane));
+        Animations.leftRight((loginPane));
+        Animations.leftRight((sortingPane));
+        Animations.leftRight((recoveryPane));
     }
 }

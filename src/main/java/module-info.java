@@ -5,6 +5,8 @@ module com.example.owlpost_2_0 {
     requires java.sql;
     requires jdk.httpserver;
     requires jakarta.mail;
+    requires java.desktop;
+    requires opencv;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;

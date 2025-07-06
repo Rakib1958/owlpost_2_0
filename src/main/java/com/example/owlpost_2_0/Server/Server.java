@@ -49,7 +49,7 @@ public class Server {
         System.out.println("Broadcasting from " + msg.getSender() + " to " + msg.getReceiver());
         for (var client : clients) {
             if (client.getUsername().equals(msg.getReceiver()) ||
-                client.getUsername().equals(msg.getSender())) {
+                    client.getUsername().equals(msg.getSender())) {
                 client.send(msg);
             }
         }
@@ -71,5 +71,3 @@ public class Server {
         }
     }
 }
-
-
