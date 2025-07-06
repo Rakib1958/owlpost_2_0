@@ -728,55 +728,80 @@ public class ChatRoomController implements Initializable {
     }
 
     private void handleIncomingMsg(ChatMessage msg) {
-        // Don't handle messages that we sent ourselves
-        if (msg.getSender().equals(client.getUsername())) {
-            return;
-        }
-
-        // Handle call-related messages
+        // Handle call-related messages first, before checking if we sent them
         if (msg.getContent().equals("AUDIO_CALL_INITIATED")) {
-            handleIncomingAudioCall(msg.getSender());
-            return;
+            if (msg.getSender().equals(client.getUsername())) {
+                // This is our own call initiation message - we should see outgoing UI
+                // The outgoing UI should already be shown from initiateAudioCall()
+                return;
+            } else {
+                // This is someone else's call - show incoming UI
+                handleIncomingAudioCall(msg.getSender());
+                return;
+            }
         } else if (msg.getContent().equals("VIDEO_CALL_INITIATED")) {
-            handleIncomingVideoCall(msg.getSender());
-            return;
+            if (msg.getSender().equals(client.getUsername())) {
+                // This is our own call initiation message - we should see outgoing UI
+                // The outgoing UI should already be shown from initiateVideoCall()
+                return;
+            } else {
+                // This is someone else's call - show incoming UI
+                handleIncomingVideoCall(msg.getSender());
+                return;
+            }
         } else if (msg.getContent().equals("CALL_ACCEPTED")) {
-            Platform.runLater(() -> {
-                isInCall = true;
-                // Hide outgoing call UI since call was accepted
-                if (outgoingCallUI != null) {
-                    outgoingCallUI.setVisible(false);
-                }
+            // Only the original caller should handle this
+            if (!msg.getSender().equals(client.getUsername()) && isOutgoingCall) {
+                Platform.runLater(() -> {
+                    isInCall = true;
+                    // Hide outgoing call UI since call was accepted
+                    if (outgoingCallUI != null) {
+                        outgoingCallUI.setVisible(false);
+                    }
 
-                if (isAudioCall) {
-                    startAudioCall();
-                } else if (isVideoCall) {
-                    startVideoCall();
-                }
-                showActiveCallUI();
-            });
+                    if (isAudioCall) {
+                        startAudioCall();
+                    } else if (isVideoCall) {
+                        startVideoCall();
+                    }
+                    showActiveCallUI();
+                });
+            }
             return;
         } else if (msg.getContent().equals("CALL_REJECTED")) {
-            Platform.runLater(() -> {
-                hideCallUI();
-                resetCallState();
-                System.out.println("Call was rejected by " + msg.getSender());
-            });
+            // Only the original caller should handle this
+            if (!msg.getSender().equals(client.getUsername()) && isOutgoingCall) {
+                Platform.runLater(() -> {
+                    hideCallUI();
+                    resetCallState();
+                    System.out.println("Call was rejected by " + msg.getSender());
+                });
+            }
             return;
         } else if (msg.getContent().equals("CALL_ENDED")) {
-            Platform.runLater(() -> {
-                hideCallUI();
-                resetCallState();
-                System.out.println("Call ended by " + msg.getSender());
-            });
+            // Both parties should handle call end
+            if (!msg.getSender().equals(client.getUsername())) {
+                Platform.runLater(() -> {
+                    hideCallUI();
+                    resetCallState();
+                    System.out.println("Call ended by " + msg.getSender());
+                });
+            }
+            return;
+        } else if (msg.getContent().equals("CALL_CANCELLED")) {
+            // Only the receiver should handle call cancellation
+            if (!msg.getSender().equals(client.getUsername())) {
+                Platform.runLater(() -> {
+                    hideCallUI();
+                    resetCallState();
+                    System.out.println("Call cancelled by " + msg.getSender());
+                });
+            }
             return;
         }
-        else if (msg.getContent().equals("CALL_CANCELLED")) {
-            Platform.runLater(() -> {
-                hideCallUI();
-                resetCallState();
-                System.out.println("Call cancelled by " + msg.getSender());
-            });
+
+        // Don't handle regular messages that we sent ourselves
+        if (msg.getSender().equals(client.getUsername())) {
             return;
         }
 
@@ -1027,12 +1052,8 @@ public class ChatRoomController implements Initializable {
         HBox card = new HBox(10);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(5));
-
-        // === Start fix ===
                 String pp = c.getProfilePicturePath();
                 Image avatarImage;
-
-        // 1) BLOB case
                 if (pp != null && pp.startsWith("BLOB:")) {
                     String username = pp.substring(5);
                     avatarImage = DatabaseHandler.getInstance().getProfilePicture(username);
@@ -1041,8 +1062,6 @@ public class ChatRoomController implements Initializable {
                         URL def = getClass().getResource("/com/example/owlpost_2_0/Images/default-profile.png");
                         avatarImage = new Image(def.toExternalForm());
                     }
-
-        // 2) File/URL case
                 } else if (pp != null && !pp.isBlank()) {
                     try {
                         avatarImage = new Image(pp);
@@ -1051,25 +1070,19 @@ public class ChatRoomController implements Initializable {
                         URL def = getClass().getResource("/com/example/owlpost_2_0/Images/default-profile.png");
                         avatarImage = new Image(def.toExternalForm());
                     }
-
-        // 3) Null or blank ⇒ default
                 } else {
                     URL def = getClass().getResource("/com/example/owlpost_2_0/Images/default-profile.png");
                     avatarImage = new Image(def.toExternalForm());
                 }
-
                 ImageView img = new ImageView(avatarImage);
                 clientImage.setFitWidth(40);
                 clientImage.setFitHeight(48);
-        // === End fix ===
-
-
         Circle clip = new Circle(24, 24, 24);
         Image friendImage = loadProfileImage(c.getProfilePicturePath());
-        setCircularImage(img, clip, friendImage);
+        //setCircularImage(img, clip, friendImage);
 
         Label name = new Label(c.getUsername());
-        name.setStyle("-fx-text-fill: white; " +  // Make text white
+        name.setStyle("-fx-text-fill: white; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 14px;");
         card.getChildren().addAll(img, name);
