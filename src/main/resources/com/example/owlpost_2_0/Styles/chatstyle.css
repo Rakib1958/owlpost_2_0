@@ -39,11 +39,12 @@
     -fx-border-radius: 8;
 }
 
-.text-fields: hover {
+.text-fields:hover {
     -fx-background-color: rgba(50, 50, 50, 0.45);
 }
 
-.text-fields: focused {
+.text-fields:focused {
     -fx-border-color: white white white white;
     -fx-border-radius: 4;
 }
+
