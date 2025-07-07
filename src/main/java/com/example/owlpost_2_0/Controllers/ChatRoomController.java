@@ -30,6 +30,7 @@ import javafx.util.Duration;
 
 import java.io.File;
 import java.net.URL;
+import java.sql.Time;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -126,6 +127,7 @@ public class ChatRoomController implements Initializable {
     private boolean isOutgoingCall = false;
     private Thread audioThread;
     private Thread videoThread;
+    private String currentMusic;
 
     // Initialize call UI components
     private void initializeCallUI() {
@@ -448,7 +450,7 @@ public class ChatRoomController implements Initializable {
     }
 
     private void hideCallUI() {
-        Audios.playBGM();
+        Audios.playBGM(TimeBasedBG());
         callOverlay.setVisible(false);
         incomingCallUI.setVisible(false);
         activeCallUI.setVisible(false);
@@ -1004,11 +1006,11 @@ public class ChatRoomController implements Initializable {
 
         leftbase.getChildren().add(0, backgroundImageView);
         leftpane.setStyle(
-                "-fx-background-color: #2c3e50; " +  // Dark blue-gray background
+                "-fx-background-color: transparent; " + "-fx-background: transparent;" +  // Dark blue-gray background
                         "-fx-background-radius: 10; " +
                         "-fx-padding: 10;"
         );
-        friendslist.setStyle("-fx-background-color: rgba(0,0,0,0.3); " + "-fx-padding: 10;");
+        friendslist.setStyle("-fx-background-color: rgba(0,0,0,0.3); " + "-fx-background: transparent;" + "-fx-padding: 10;");
         UpdateBG();
         setUpBackgroundTimer();
 
@@ -1050,6 +1052,7 @@ public class ChatRoomController implements Initializable {
 
     private HBox createFriendCard(Client c) {
         HBox card = new HBox(10);
+        card.setPrefWidth(300);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(5));
         String pp = c.getProfilePicturePath();
@@ -1075,8 +1078,8 @@ public class ChatRoomController implements Initializable {
             avatarImage = new Image(def.toExternalForm());
         }
         ImageView img = new ImageView(avatarImage);
-        clientImage.setFitWidth(40);
-        clientImage.setFitHeight(48);
+        img.setFitWidth(40);
+        img.setFitHeight(48);
         Circle clip = new Circle(24, 24, 24);
         Image friendImage = loadProfileImage(c.getProfilePicturePath());
         //setCircularImage(img, clip, friendImage);
@@ -1171,6 +1174,7 @@ public class ChatRoomController implements Initializable {
         try {
             String BGPath = "/com/example/owlpost_2_0/Images/Backgrounds/" + TimeBasedBG() + ".gif";
             Image image = new Image(getClass().getResource(BGPath).toExternalForm());
+            Audios.playBGM(TimeBasedBG());
 
             Platform.runLater(() -> {
                 chatBG.setImage(image);
@@ -1207,7 +1211,7 @@ public class ChatRoomController implements Initializable {
             }
         });
 
-        Audios.playBGM();
+//        Audios.playBGM();
 
     }
 

@@ -20,6 +20,7 @@ public class OwlPost_2_0 extends Application {
             Font f = Font.loadFont(getClass().getResourceAsStream("Fonts/HARRYP__.TTF"), 12);
 
             Audios.playAmbience();
+//            Audios.playSound("Ambience", 0);
             Parent root = FXMLLoader.load(getClass().getResource("Fxml/loginform.fxml"));
             Scene scene = new Scene(root);
 

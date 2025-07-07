@@ -5,10 +5,12 @@ import javafx.scene.media.MediaPlayer;
 
 public class Audios {
     private static Media ambience = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/Ambience.mp3").toExternalForm());
-    private static Media BGM = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/BGM.mp3").toExternalForm());
+    private static Media BGM;
+//    private static Media BGM = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/BGM.mp3").toExternalForm());
 
     private static MediaPlayer ambiencePlayer = new MediaPlayer(ambience);
-    private static MediaPlayer BGMPlayer = new MediaPlayer(BGM);
+    private static MediaPlayer BGMPlayer;
+//    private static MediaPlayer BGMPlayer = new MediaPlayer(BGM);
 
     public static void playAmbience() {
         ambiencePlayer.setVolume(0.25);
@@ -22,7 +24,9 @@ public class Audios {
         }
     }
 
-    public static void playBGM() {
+    public static void playBGM(String currentMusic) {
+        BGM = new Media(Audios.class.getResource("/com/example/owlpost_2_0/Music/" + currentMusic + ".mp3").toExternalForm());
+        BGMPlayer = new MediaPlayer(BGM);
         BGMPlayer.setVolume(0.5);
         BGMPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         BGMPlayer.play();
