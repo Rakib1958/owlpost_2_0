@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
@@ -37,10 +38,26 @@
         </Pane>
         <StackPane layoutX="926.0" prefHeight="720.0" prefWidth="354.0">
             <children>
-                <Pane prefHeight="200.0" prefWidth="200.0" />
-                <Pane prefHeight="200.0" prefWidth="200.0" />
-                <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" />
-                <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" />
+            <ImageView fitHeight="744.0" fitWidth="356.0" pickOnBounds="true">
+               <image>
+                  <Image url="@../Images/LoginForm/sidebar.gif" />
+               </image>
+            </ImageView>
+                <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;">
+               <children>
+                  <ImageView fx:id="userImage1" fitHeight="94.0" fitWidth="99.0" layoutX="129.0" layoutY="75.0">
+                     <clip>
+                        <Circle fx:id="userImageClip1" centerX="32" centerY="32" radius="32" />
+                     </clip>
+                  </ImageView>
+                  <Button fx:id="changeDOBtn" layoutX="205.0" layoutY="149.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="47.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-background-radius: 30;" text="📷" />
+                  <Label layoutX="27.0" layoutY="221.0" text="Name" textFill="WHITE" />
+                  <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" textFill="#b4b4b4" />
+                  <Label layoutX="27.0" layoutY="323.0" text="Label" />
+               </children></Pane>
+                <Pane prefHeight="200.0" prefWidth="200.0" visible="false" />
+                <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
+                <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
             </children>
         </StackPane>
         <Pane layoutX="320.0" prefHeight="728.0" prefWidth="607.0">
@@ -55,8 +72,7 @@
                                         <VBox fx:id="msgbox" prefWidth="617.0" />
                                     </content>
                                 </ScrollPane>
-                                <StackPane fx:id="callOverlay" layoutY="98.0" prefHeight="569.0" prefWidth="607.0" visible="false"
-                                           style="-fx-background-color: rgba(0, 0, 0, 0.8);" />
+                                <StackPane fx:id="callOverlay" layoutY="98.0" prefHeight="569.0" prefWidth="607.0" style="-fx-background-color: rgba(0, 0, 0, 0.8);" visible="false" />
                                 <HBox fx:id="clientCard" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="607.0" spacing="10.0" styleClass="header-user">
                                     <children>
                                         <ImageView fx:id="clientImage" fitHeight="64.0" fitWidth="64.0">
