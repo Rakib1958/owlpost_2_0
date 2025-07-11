@@ -710,7 +710,7 @@ public class ChatRoomController implements Initializable {
                 byte[] fileData = readAllBytes(selected.toPath());
                 ChatMessage msg = new ChatMessage(client.getUsername(), currentReceiver, "File: " + selected.getName(), fileData);
                 chatClient.sendMessage(msg);
-
+                showMessageInChat(msg);
                 DatabaseHandler.getInstance().saveChatMessage(msg);
 
             } catch (Exception e) {
