@@ -332,15 +332,12 @@ public class ChatRoomController implements Initializable {
         outgoingCallUI.getChildren().addAll(receiverImageView, receiverNameLabel, outgoingCallStatus, cancelCallBtn);
         callOverlay.getChildren().add(outgoingCallUI);
         outgoingCallUI.setVisible(false);
-
-        // Store reference for later use
         this.outgoingCallUI = outgoingCallUI;
     }
 
     // Call handling methods
     private void handleIncomingAudioCall(String caller) {
         Platform.runLater(() -> {
-            // Don't show incoming call UI if we are the caller
             if (caller.equals(client.getUsername())) {
                 return;
             }
@@ -348,7 +345,7 @@ public class ChatRoomController implements Initializable {
             currentCaller = caller;
             isAudioCall = true;
             isVideoCall = false;
-            isOutgoingCall = false; // Add this line - we're receiving, not making a call
+            isOutgoingCall = false;
 
             // Update caller info
             callStatusLabel.setText("Audio Call");
@@ -367,7 +364,6 @@ public class ChatRoomController implements Initializable {
 
     private void handleIncomingVideoCall(String caller) {
         Platform.runLater(() -> {
-            // Don't show incoming call UI if we are the caller
             if (caller.equals(client.getUsername())) {
                 return;
             }
@@ -375,7 +371,7 @@ public class ChatRoomController implements Initializable {
             currentCaller = caller;
             isAudioCall = false;
             isVideoCall = true;
-            isOutgoingCall = false; // Add this line - we're receiving, not making a call
+            isOutgoingCall = false;
 
             // Update caller info
             callStatusLabel.setText("Video Call");
@@ -423,9 +419,8 @@ public class ChatRoomController implements Initializable {
 
     private void showOutgoingCallUI(String callType) {
         Platform.runLater(() -> {
-            // Only show outgoing call UI if this is actually an outgoing call
             if (!isOutgoingCall) {
-                return; // Don't show outgoing UI if we're not the ones making the call
+                return;
             }
 
             callOverlay.setVisible(true);
@@ -463,7 +458,6 @@ public class ChatRoomController implements Initializable {
     @FXML
     private void acceptCall(ActionEvent event) {
         try {
-            // Send acceptance message back to caller
             ChatMessage acceptMsg = new ChatMessage(client.getUsername(), currentCaller, "CALL_ACCEPTED");
             chatClient.sendMessage(acceptMsg);
 
@@ -534,7 +528,6 @@ public class ChatRoomController implements Initializable {
                 "-fx-min-height: 50px; " +
                 "-fx-cursor: hand;");
 
-        // Add your mute/unmute logic here
     }
 
     private void startAudioCall() {
@@ -560,7 +553,6 @@ public class ChatRoomController implements Initializable {
         });
         videoThread.start();
 
-        // Also start video receiver in another thread
         new Thread(() -> {
             try {
                 VideoReceiver.start(9808);
@@ -585,7 +577,7 @@ public class ChatRoomController implements Initializable {
 
         localVideoView.setVisible(isVideoEnabled);
 
-        // Add your video toggle logic here
+        //video toggle logic lagbe
     }
 
     private void startCallDurationTimer() {
@@ -604,13 +596,11 @@ public class ChatRoomController implements Initializable {
         isInCall = false;
         isAudioCall = false;
         isVideoCall = false;
-        isOutgoingCall = false; // Add this line
+        isOutgoingCall = false;
         isMuted = false;
         isVideoEnabled = true;
         currentCaller = null;
         callDurationSeconds = 0;
-
-        // Stop audio/video threads
         if (audioThread != null) {
             audioThread.interrupt();
             audioThread = null;
@@ -730,33 +720,24 @@ public class ChatRoomController implements Initializable {
     }
 
     private void handleIncomingMsg(ChatMessage msg) {
-        // Handle call-related messages first, before checking if we sent them
         if (msg.getContent().equals("AUDIO_CALL_INITIATED")) {
             if (msg.getSender().equals(client.getUsername())) {
-                // This is our own call initiation message - we should see outgoing UI
-                // The outgoing UI should already be shown from initiateAudioCall()
                 return;
             } else {
-                // This is someone else's call - show incoming UI
                 handleIncomingAudioCall(msg.getSender());
                 return;
             }
         } else if (msg.getContent().equals("VIDEO_CALL_INITIATED")) {
             if (msg.getSender().equals(client.getUsername())) {
-                // This is our own call initiation message - we should see outgoing UI
-                // The outgoing UI should already be shown from initiateVideoCall()
                 return;
             } else {
-                // This is someone else's call - show incoming UI
                 handleIncomingVideoCall(msg.getSender());
                 return;
             }
         } else if (msg.getContent().equals("CALL_ACCEPTED")) {
-            // Only the original caller should handle this
             if (!msg.getSender().equals(client.getUsername()) && isOutgoingCall) {
                 Platform.runLater(() -> {
                     isInCall = true;
-                    // Hide outgoing call UI since call was accepted
                     if (outgoingCallUI != null) {
                         outgoingCallUI.setVisible(false);
                     }
@@ -771,7 +752,6 @@ public class ChatRoomController implements Initializable {
             }
             return;
         } else if (msg.getContent().equals("CALL_REJECTED")) {
-            // Only the original caller should handle this
             if (!msg.getSender().equals(client.getUsername()) && isOutgoingCall) {
                 Platform.runLater(() -> {
                     hideCallUI();
@@ -781,7 +761,6 @@ public class ChatRoomController implements Initializable {
             }
             return;
         } else if (msg.getContent().equals("CALL_ENDED")) {
-            // Both parties should handle call end
             if (!msg.getSender().equals(client.getUsername())) {
                 Platform.runLater(() -> {
                     hideCallUI();
@@ -791,7 +770,6 @@ public class ChatRoomController implements Initializable {
             }
             return;
         } else if (msg.getContent().equals("CALL_CANCELLED")) {
-            // Only the receiver should handle call cancellation
             if (!msg.getSender().equals(client.getUsername())) {
                 Platform.runLater(() -> {
                     hideCallUI();
@@ -802,7 +780,6 @@ public class ChatRoomController implements Initializable {
             return;
         }
 
-        // Don't handle regular messages that we sent ourselves
         if (msg.getSender().equals(client.getUsername())) {
             return;
         }
@@ -941,14 +918,12 @@ public class ChatRoomController implements Initializable {
                 isAudioCall = true;
                 isVideoCall = false;
                 initiateAudioCall();
-                // Don't show active call UI here - wait for acceptance
             }
         } else if (btn.equals(videocall)) {
             if (currentReceiver != null) {
                 isAudioCall = false;
                 isVideoCall = true;
                 initiateVideoCall();
-                // Don't show active call UI here - wait for acceptance
             }
         }
     }
