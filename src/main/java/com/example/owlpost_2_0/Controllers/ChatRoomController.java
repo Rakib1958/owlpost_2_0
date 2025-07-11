@@ -53,7 +53,7 @@ public class ChatRoomController implements Initializable {
     @FXML
     private ScrollPane chatScroll;
     @FXML
-    private StackPane callOverlay; // New call overlay pane
+    private StackPane callOverlay;
 
     // buttons
     @FXML
