@@ -534,7 +534,7 @@ public class ChatRoomController implements Initializable {
         audioThread = new Thread(() -> {
             try {
                 // Start your UDP audio client
-                ClientUDP.start("localhost", 9806);
+                ClientUDP.start("172.16.31.28", 9806);
             } catch (Exception e) {
                 System.err.println("Audio call error: " + e.getMessage());
             }
@@ -546,7 +546,7 @@ public class ChatRoomController implements Initializable {
         videoThread = new Thread(() -> {
             try {
                 // Start video sender
-                VideoSender.start("localhost", 9807);
+                VideoSender.start("172.16.31.94", 9807);
             } catch (Exception e) {
                 System.err.println("Video call error: " + e.getMessage());
             }
@@ -990,7 +990,7 @@ public class ChatRoomController implements Initializable {
         setUpBackgroundTimer();
 
         try {
-            chatClient = new ChatClient("localhost", client.getUsername());
+            chatClient = new ChatClient("172.16.31.28", client.getUsername());
             chatClient.listenForMsg(this::handleIncomingMsg);
         } catch (Exception e) {
             System.out.println("Error connecting to server");
@@ -1149,7 +1149,7 @@ public class ChatRoomController implements Initializable {
         try {
             String BGPath = "/com/example/owlpost_2_0/Images/Backgrounds/" + TimeBasedBG() + ".gif";
             Image image = new Image(getClass().getResource(BGPath).toExternalForm());
-            Audios.playBGM(TimeBasedBG());
+//            Audios.playBGM(TimeBasedBG());
 
             Platform.runLater(() -> {
                 chatBG.setImage(image);
