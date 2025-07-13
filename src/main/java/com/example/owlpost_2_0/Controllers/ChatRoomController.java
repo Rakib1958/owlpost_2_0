@@ -684,7 +684,7 @@ public class ChatRoomController implements Initializable {
             chatClient.sendMessage(msg);
             msgField.clear();
             showMessageInChat(msg);
-            DatabaseHandler.getInstance().saveChatMessage(msg);
+//            DatabaseHandler.getInstance().saveChatMessage(msg);
         }
     }
 

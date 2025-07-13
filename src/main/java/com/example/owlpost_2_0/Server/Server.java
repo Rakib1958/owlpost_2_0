@@ -1,6 +1,7 @@
 package com.example.owlpost_2_0.Server;
 
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
+import com.example.owlpost_2_0.Database.DatabaseHandler;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -46,6 +47,7 @@ public class Server {
     }
 
     public static void broadcast(ChatMessage msg) {
+        DatabaseHandler.getInstance().saveChatMessage(msg);
         System.out.println("Broadcasting from " + msg.getSender() + " to " + msg.getReceiver());
         for (var client : clients) {
             if (client.getUsername().equals(msg.getReceiver()) ||
