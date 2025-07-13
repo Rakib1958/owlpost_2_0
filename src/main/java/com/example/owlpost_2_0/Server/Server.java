@@ -6,12 +6,16 @@ import com.example.owlpost_2_0.Database.DatabaseHandler;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Server {
     private ServerSocket serverSocket;
     private static Set<ClientHandler> clients = new HashSet<>();
 
+    public static List<ChatMessage> getMara(String sender,String receiver){
+        return DatabaseHandler.getInstance().loadChatHistory(sender, receiver);
+    }
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }

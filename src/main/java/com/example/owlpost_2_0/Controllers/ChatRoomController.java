@@ -5,6 +5,7 @@ import com.example.owlpost_2_0.Client.ChatClient;
 import com.example.owlpost_2_0.Client.Client;
 import com.example.owlpost_2_0.Database.DatabaseHandler;
 import com.example.owlpost_2_0.Resources.Audios;
+import com.example.owlpost_2_0.Server.Server;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -534,7 +535,7 @@ public class ChatRoomController implements Initializable {
         audioThread = new Thread(() -> {
             try {
                 // Start your UDP audio client
-                ClientUDP.start("172.16.31.28", 9806);
+                ClientUDP.start("10.126.132.28", 9806);
             } catch (Exception e) {
                 System.err.println("Audio call error: " + e.getMessage());
             }
@@ -546,7 +547,7 @@ public class ChatRoomController implements Initializable {
         videoThread = new Thread(() -> {
             try {
                 // Start video sender
-                VideoSender.start("172.16.31.94", 9807);
+                VideoSender.start("10.126.132.94", 9807);
             } catch (Exception e) {
                 System.err.println("Video call error: " + e.getMessage());
             }
@@ -990,7 +991,7 @@ public class ChatRoomController implements Initializable {
         setUpBackgroundTimer();
 
         try {
-            chatClient = new ChatClient("172.16.31.28", client.getUsername());
+            chatClient = new ChatClient("10.126.132.28", client.getUsername());
             chatClient.listenForMsg(this::handleIncomingMsg);
         } catch (Exception e) {
             System.out.println("Error connecting to server");
@@ -1113,7 +1114,7 @@ public class ChatRoomController implements Initializable {
 
     private void loadChatHistory(String sender, String receiver) {
         msgbox.getChildren().clear();
-        List<ChatMessage> messages = DatabaseHandler.getInstance().loadChatHistory(sender, receiver);
+        List<ChatMessage> messages = Server.getMara(sender,receiver);
         //msgbox.getChildren().clear();
         for (var msg : messages) {
 //            handleIncomingMsg(msg);
