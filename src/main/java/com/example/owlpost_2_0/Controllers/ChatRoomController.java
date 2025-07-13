@@ -534,7 +534,7 @@ public class ChatRoomController implements Initializable {
         audioThread = new Thread(() -> {
             try {
                 // Start your UDP audio client
-                ClientUDP.start("172.16.31.28", 9806);
+                ClientUDP.start("10.126.132.28", 9806);
             } catch (Exception e) {
                 System.err.println("Audio call error: " + e.getMessage());
             }
@@ -546,7 +546,7 @@ public class ChatRoomController implements Initializable {
         videoThread = new Thread(() -> {
             try {
                 // Start video sender
-                VideoSender.start("172.16.31.94", 9807);
+                VideoSender.start("10.126.132.28", 9807);
             } catch (Exception e) {
                 System.err.println("Video call error: " + e.getMessage());
             }
@@ -711,7 +711,7 @@ public class ChatRoomController implements Initializable {
                 ChatMessage msg = new ChatMessage(client.getUsername(), currentReceiver, "File: " + selected.getName(), fileData);
                 chatClient.sendMessage(msg);
                 showMessageInChat(msg);
-                DatabaseHandler.getInstance().saveChatMessage(msg);
+                //DatabaseHandler.getInstance().saveChatMessage(msg);
 
             } catch (Exception e) {
                 System.out.println("Error sending file: " + e.getMessage());
@@ -990,7 +990,7 @@ public class ChatRoomController implements Initializable {
         setUpBackgroundTimer();
 
         try {
-            chatClient = new ChatClient("172.16.31.28", client.getUsername());
+            chatClient = new ChatClient("10.126.132.28", client.getUsername());
             chatClient.listenForMsg(this::handleIncomingMsg);
         } catch (Exception e) {
             System.out.println("Error connecting to server");

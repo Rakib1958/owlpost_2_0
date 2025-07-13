@@ -7,6 +7,11 @@ module com.example.owlpost_2_0 {
     requires jakarta.mail;
     requires java.desktop;
     requires opencv;
+    requires com.google.auth.oauth2;
+    requires firebase.admin;
+    requires google.cloud.firestore;
+    requires google.cloud.storage;
+    requires com.google.api.apicommon;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;
