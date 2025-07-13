@@ -2,23 +2,33 @@ package com.example.owlpost_2_0.Database;
 
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
 import com.example.owlpost_2_0.Client.Client;
+import com.google.api.core.ApiFuture;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.*;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 import javafx.scene.image.Image;
 
 import java.io.*;
-import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class DatabaseHandler {
-    private static final String DB_URL = "jdbc:sqlite:owlpost.db";
     private static DatabaseHandler instance;
-    private Connection connection;
+    private Firestore db;
+    private Storage storage;
+    private String bucketName;
 
     private DatabaseHandler() {
-        connect();
-        createUserTable();
-        createChatHistoryTable(); // Add this line
+        initializeFirebase();
     }
 
     public static DatabaseHandler getInstance() {
@@ -26,52 +36,35 @@ public class DatabaseHandler {
         return instance;
     }
 
-    private void connect() {
+    private void initializeFirebase() {
         try {
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection(DB_URL);
-        } catch (Exception e) {
-            System.out.println("Database connection failed: " + e.getMessage());
-        }
-    }
+            // Initialize Firebase (replace with your service account key path)
+            InputStream serviceAccount = getClass().getResourceAsStream("/com/example/owlpost_2_0/db/serviceAccountKey.json");
 
-    private void createUserTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    date_of_birth TEXT,
-                    house TEXT,
-                    patronus TEXT,
-                    profile_picture BLOB
-                );
-                """;
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            System.out.println("Table creation failed: " + e.getMessage());
-        }
-    }
+            GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
+            FirebaseOptions options = new FirebaseOptions.Builder()
+                    .setCredentials(credentials)
+                    .setStorageBucket("\n" +
+                            "owlpost-8925a.appspot.com") // Replace with your bucket name
+                    .build();
 
-    private void createChatHistoryTable() {
-        String sql = """
-        CREATE TABLE IF NOT EXISTS chat_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sender TEXT NOT NULL,
-            receiver TEXT NOT NULL,
-            content TEXT,
-            is_file INTEGER,
-            file_name TEXT,
-            file_data BLOB,
-            timestamp TEXT
-        );
-        """;
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            System.out.println("Chat history table creation failed: " + e.getMessage());
+            if (FirebaseApp.getApps().isEmpty()) {
+                FirebaseApp.initializeApp(options);
+            }
+
+            // Initialize Firestore
+            db = FirestoreClient.getFirestore();
+
+            // Initialize Storage
+            storage = StorageOptions.newBuilder()
+                    .setCredentials(credentials)
+                    .build()
+                    .getService();
+            bucketName = "\n" +
+                    "owlpost-8925a.appspot.com"; // Replace with your bucket name
+
+        } catch (IOException e) {
+            System.out.println("Firebase initialization failed: " + e.getMessage());
         }
     }
 
@@ -81,92 +74,135 @@ public class DatabaseHandler {
                 client.getHouse() == null || client.getPatronus() == null) {
             return false;
         }
-        String sql = """
-                INSERT INTO users (username, password, email, date_of_birth, house, patronus, profile_picture)
-                VALUES (?, ?, ?, ?, ?, ?, ?);
-                """;
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, client.getUsername());
-            pstmt.setString(2, client.getPassword());
-            pstmt.setString(3, client.getEmail());
-            pstmt.setString(4, client.getDateofbirth().toString());
-            pstmt.setString(5, client.getHouse());
-            pstmt.setString(6, client.getPatronus());
-            pstmt.setBytes(7, fileToByteArray(profilePic));
 
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+        try {
+            // Create user document
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("username", client.getUsername());
+            userData.put("password", client.getPassword()); // In production, hash this!
+            userData.put("email", client.getEmail());
+            userData.put("date_of_birth", client.getDateofbirth().toString());
+            userData.put("house", client.getHouse());
+            userData.put("patronus", client.getPatronus());
+            userData.put("created_at", new Date());
+
+            // Upload profile picture to Firebase Storage
+            String profilePicUrl = uploadProfilePicture(client.getUsername(), profilePic);
+            userData.put("profile_picture_url", profilePicUrl);
+
+            // Save to Firestore
+            ApiFuture<WriteResult> future = db.collection("users").document(client.getUsername()).set(userData);
+            future.get(); // Wait for completion
+
+            return true;
+        } catch (Exception e) {
             System.out.println("Registration failed: " + e.getMessage());
             return false;
         }
     }
 
     public Client login(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            ResultSet rs = pstmt.executeQuery();
+        try {
+            ApiFuture<DocumentSnapshot> future = db.collection("users").document(username).get();
+            DocumentSnapshot document = future.get();
 
-            if (rs.next()) {
-                Client client = new Client();
-                client.setUsername(rs.getString("username"));
-                client.setPassword(rs.getString("password"));
-                client.setEmail(rs.getString("email"));
-                client.setDateofbirth(Date.valueOf(rs.getString("date_of_birth")).toLocalDate());
-                client.setHouse(rs.getString("house"));
-                client.setPatronus(rs.getString("patronus"));
+            if (document.exists()) {
+                String storedPassword = document.getString("password");
+                if (password.equals(storedPassword)) {
+                    Client client = new Client();
+                    client.setUsername(document.getString("username"));
+                    client.setPassword(document.getString("password"));
+                    client.setEmail(document.getString("email"));
+                    client.setDateofbirth(LocalDate.parse(document.getString("date_of_birth")));
+                    client.setHouse(document.getString("house"));
+                    client.setPatronus(document.getString("patronus"));
+                    client.setProfilePicturePath(document.getString("profile_picture_url"));
 
-                // Set profile picture path to a special identifier for BLOB data
-                client.setProfilePicturePath("BLOB:" + username);
-
-                return client;
+                    return client;
+                }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Login failed: " + e.getMessage());
         }
         return null;
     }
 
     public boolean updatePassword(String username, String newPassword) {
-        String sql = "UPDATE users SET password = ? WHERE username = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, newPassword);
-            pstmt.setString(2, username);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+        try {
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("password", newPassword);
+            updates.put("updated_at", new Date());
+
+            ApiFuture<WriteResult> future = db.collection("users").document(username).update(updates);
+            future.get();
+            return true;
+        } catch (Exception e) {
             System.out.println("Password update failed: " + e.getMessage());
             return false;
         }
     }
 
     public boolean updateProfilePicture(String username, File newPic) {
-        String sql = "UPDATE users SET profile_picture = ? WHERE username = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setBytes(1, fileToByteArray(newPic));
-            pstmt.setString(2, username);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+        try {
+            String newProfilePicUrl = uploadProfilePicture(username, newPic);
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("profile_picture_url", newProfilePicUrl);
+            updates.put("updated_at", new Date());
+
+            ApiFuture<WriteResult> future = db.collection("users").document(username).update(updates);
+            future.get();
+            return true;
+        } catch (Exception e) {
             System.out.println("Profile picture update failed: " + e.getMessage());
             return false;
         }
     }
 
     public Image getProfilePicture(String username) {
-        String sql = "SELECT profile_picture FROM users WHERE username = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                byte[] imgBytes = rs.getBytes("profile_picture");
-                if (imgBytes != null) {
-                    return new Image(new ByteArrayInputStream(imgBytes));
+        try {
+            // Get profile picture URL from Firestore
+            ApiFuture<DocumentSnapshot> future = db.collection("users").document(username).get();
+            DocumentSnapshot document = future.get();
+
+            if (document.exists()) {
+                String profilePicUrl = document.getString("profile_picture_url");
+                if (profilePicUrl != null && !profilePicUrl.isEmpty()) {
+                    // Download from Firebase Storage
+                    BlobId blobId = BlobId.of(bucketName, "profile_pictures/" + username);
+                    Blob blob = storage.get(blobId);
+
+                    if (blob != null) {
+                        byte[] content = blob.getContent();
+                        return new Image(new ByteArrayInputStream(content));
+                    }
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Failed to fetch profile picture: " + e.getMessage());
         }
         return null;
+    }
+
+    private String uploadProfilePicture(String username, File file) {
+        if (file == null || !file.exists()) return null;
+
+        try {
+            byte[] fileData = fileToByteArray(file);
+            String fileName = "profile_pictures/" + username;
+
+            BlobId blobId = BlobId.of(bucketName, fileName);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                    .setContentType("image/jpeg")
+                    .build();
+
+            storage.create(blobInfo, fileData);
+
+            return fileName; // Return the file path in storage
+        } catch (Exception e) {
+            System.out.println("Profile picture upload failed: " + e.getMessage());
+            return null;
+        }
     }
 
     private byte[] fileToByteArray(File file) {
@@ -187,79 +223,96 @@ public class DatabaseHandler {
     }
 
     public boolean usernameExists(String username) {
-        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.getInt(1) > 0;
-        } catch (SQLException e) {
+        try {
+            ApiFuture<DocumentSnapshot> future = db.collection("users").document(username).get();
+            DocumentSnapshot document = future.get();
+            return document.exists();
+        } catch (Exception e) {
             System.err.println("Username check failed: " + e.getMessage());
             return false;
         }
     }
 
     public Client findUserByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, email);
-            ResultSet rs = pstmt.executeQuery();
+        try {
+            ApiFuture<QuerySnapshot> future = db.collection("users")
+                    .whereEqualTo("email", email)
+                    .get();
 
-            if (rs.next()) {
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            if (!documents.isEmpty()) {
+                DocumentSnapshot document = documents.get(0);
                 Client client = new Client();
-                client.setUsername(rs.getString("username"));
-                client.setPassword(rs.getString("password"));
-                client.setEmail(rs.getString("email"));
-                client.setDateofbirth(Date.valueOf(rs.getString("date_of_birth")).toLocalDate());
-                client.setHouse(rs.getString("house"));
-                client.setPatronus(rs.getString("patronus"));
-
-                // Set profile picture path to a special identifier for BLOB data
-                client.setProfilePicturePath("BLOB:" + rs.getString("username"));
+                client.setUsername(document.getString("username"));
+                client.setPassword(document.getString("password"));
+                client.setEmail(document.getString("email"));
+                client.setDateofbirth(LocalDate.parse(document.getString("date_of_birth")));
+                client.setHouse(document.getString("house"));
+                client.setPatronus(document.getString("patronus"));
+                client.setProfilePicturePath(document.getString("profile_picture_url"));
 
                 return client;
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Find user by email failed: " + e.getMessage());
         }
         return null;
     }
 
     public boolean emailExists(String email) {
-        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, email);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.getInt(1) > 0;
-        } catch (SQLException e) {
+        try {
+            ApiFuture<QuerySnapshot> future = db.collection("users")
+                    .whereEqualTo("email", email)
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            return !documents.isEmpty();
+        } catch (Exception e) {
             System.err.println("Email check failed: " + e.getMessage());
             return false;
         }
     }
 
     public void close() {
+        // Firebase handles connections automatically
+        // No explicit close needed, but you can shutdown if required
         try {
-            if (connection != null) connection.close();
-        } catch (SQLException e) {
-            System.out.println("Connection close failed: " + e.getMessage());
+            if (FirebaseApp.getApps().size() > 0) {
+                FirebaseApp.getInstance().delete();
+            }
+        } catch (Exception e) {
+            System.out.println("Firebase shutdown failed: " + e.getMessage());
         }
     }
 
     public boolean saveChatMessage(ChatMessage msg) {
-        String sql = """
-        INSERT INTO chat_history 
-        (sender, receiver, content, is_file, file_name, file_data, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, datetime('now'));
-        """;
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, msg.getSender());
-            pstmt.setString(2, msg.getReceiver());
-            pstmt.setString(3, msg.isFile() ? null : msg.getContent());
-            pstmt.setInt(4, msg.isFile() ? 1 : 0);
-            pstmt.setString(5, msg.isFile() ? msg.getFileName() : null);
-            pstmt.setBytes(6, msg.isFile() ? msg.getFileData() : null);
+        try {
+            Map<String, Object> messageData = new HashMap<>();
+            messageData.put("sender", msg.getSender());
+            messageData.put("receiver", msg.getReceiver());
+            messageData.put("is_file", msg.isFile());
+            messageData.put("timestamp", new Date());
 
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+            if (msg.isFile()) {
+                // Upload file to Firebase Storage
+                String fileUrl = uploadChatFile(msg.getSender(), msg.getReceiver(),
+                        msg.getFileName(), msg.getFileData());
+                messageData.put("file_name", msg.getFileName());
+                messageData.put("file_url", fileUrl);
+                messageData.put("content", null);
+            } else {
+                messageData.put("content", msg.getContent());
+                messageData.put("file_name", null);
+                messageData.put("file_url", null);
+            }
+
+            // Save to chat_history collection
+            ApiFuture<DocumentReference> future = db.collection("chat_history").add(messageData);
+            future.get();
+
+            return true;
+        } catch (Exception e) {
             System.out.println("Error saving chat message: " + e.getMessage());
             return false;
         }
@@ -267,37 +320,40 @@ public class DatabaseHandler {
 
     public List<ChatMessage> loadChatHistory(String user1, String user2) {
         List<ChatMessage> messages = new ArrayList<>();
-        String sql = """
-        SELECT * FROM chat_history
-        WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)
-        ORDER BY id ASC;
-        """;
 
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, user1);
-            pstmt.setString(2, user2);
-            pstmt.setString(3, user2);
-            pstmt.setString(4, user1);
+        try {
+            // Query for messages between two users
+            ApiFuture<QuerySnapshot> future = db.collection("chat_history")
+                    .whereIn("sender", Arrays.asList(user1, user2))
+                    .whereIn("receiver", Arrays.asList(user1, user2))
+                    .orderBy("timestamp", Query.Direction.ASCENDING)
+                    .get();
 
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                String sender = rs.getString("sender");
-                String receiver = rs.getString("receiver");
-                boolean isFile = rs.getInt("is_file") == 1;
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-                ChatMessage msg;
-                if (isFile) {
-                    msg = new ChatMessage(sender, receiver,
-                            rs.getString("file_name"),
-                            rs.getBytes("file_data"));
-                } else {
-                    msg = new ChatMessage(sender, receiver,
-                            rs.getString("content"));
+            for (DocumentSnapshot document : documents) {
+                String sender = document.getString("sender");
+                String receiver = document.getString("receiver");
+                boolean isFile = document.getBoolean("is_file");
+
+                // Only include messages between the two specified users
+                if ((sender.equals(user1) && receiver.equals(user2)) ||
+                        (sender.equals(user2) && receiver.equals(user1))) {
+
+                    ChatMessage msg;
+                    if (isFile) {
+                        String fileName = document.getString("file_name");
+                        String fileUrl = document.getString("file_url");
+                        byte[] fileData = downloadChatFile(fileUrl);
+                        msg = new ChatMessage(sender, receiver, fileName, fileData);
+                    } else {
+                        msg = new ChatMessage(sender, receiver, document.getString("content"));
+                    }
+
+                    messages.add(msg);
                 }
-
-                messages.add(msg);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Error loading chat history: " + e.getMessage());
         }
 
@@ -306,31 +362,56 @@ public class DatabaseHandler {
 
     public List<Client> loadUsers() {
         List<Client> users = new ArrayList<>();
-        String sql = "SELECT * FROM users";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try {
+            ApiFuture<QuerySnapshot> future = db.collection("users").get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-            while (rs.next()) {
+            for (DocumentSnapshot document : documents) {
                 Client client = new Client();
-                client.setUsername(rs.getString("username"));
-                client.setPassword(rs.getString("password"));
-                client.setEmail(rs.getString("email"));
-                // Fix: Use correct column name
-                client.setDateofbirth(LocalDate.parse(rs.getString("date_of_birth")));
-                client.setHouse(rs.getString("house"));
-                client.setPatronus(rs.getString("patronus"));
-
-                // Set profile picture path to a special identifier for BLOB data
-                client.setProfilePicturePath("BLOB:" + rs.getString("username"));
+                client.setUsername(document.getString("username"));
+                client.setPassword(document.getString("password"));
+                client.setEmail(document.getString("email"));
+                client.setDateofbirth(LocalDate.parse(document.getString("date_of_birth")));
+                client.setHouse(document.getString("house"));
+                client.setPatronus(document.getString("patronus"));
+                client.setProfilePicturePath(document.getString("profile_picture_url"));
 
                 users.add(client);
             }
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Error loading users: " + e.getMessage());
         }
 
         return users;
+    }
+
+    private String uploadChatFile(String sender, String receiver, String fileName, byte[] fileData) {
+        try {
+            String filePath = "chat_files/" + sender + "_" + receiver + "_" + System.currentTimeMillis() + "_" + fileName;
+
+            BlobId blobId = BlobId.of(bucketName, filePath);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+
+            storage.create(blobInfo, fileData);
+            return filePath;
+        } catch (Exception e) {
+            System.out.println("Chat file upload failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private byte[] downloadChatFile(String fileUrl) {
+        try {
+            BlobId blobId = BlobId.of(bucketName, fileUrl);
+            Blob blob = storage.get(blobId);
+
+            if (blob != null) {
+                return blob.getContent();
+            }
+        } catch (Exception e) {
+            System.out.println("Chat file download failed: " + e.getMessage());
+        }
+        return null;
     }
 }

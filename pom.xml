@@ -64,6 +64,19 @@
             <artifactId>opencv</artifactId>
             <version>4.9.0-0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.22.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
