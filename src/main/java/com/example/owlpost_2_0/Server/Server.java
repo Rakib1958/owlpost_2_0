@@ -47,7 +47,6 @@ public class Server {
     }
 
     public static void broadcast(ChatMessage msg) {
-        DatabaseHandler.getInstance().saveChatMessage(msg);
         System.out.println("Broadcasting from " + msg.getSender() + " to " + msg.getReceiver());
         for (var client : clients) {
             if (client.getUsername().equals(msg.getReceiver()) ||

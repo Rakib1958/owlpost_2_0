@@ -38,30 +38,25 @@ public class DatabaseHandler {
 
     private void initializeFirebase() {
         try {
-            // Initialize Firebase (replace with your service account key path)
             InputStream serviceAccount = getClass().getResourceAsStream("/com/example/owlpost_2_0/db/serviceAccountKey.json");
 
             GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(credentials)
-                    .setStorageBucket("\n" +
-                            "owlpost-8925a.appspot.com") // Replace with your bucket name
+                    .setProjectId("owlpost-8925a")
+                    .setStorageBucket("owlpost-8925a.firebasestorage.app")
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);
             }
-
-            // Initialize Firestore
             db = FirestoreClient.getFirestore();
-
-            // Initialize Storage
             storage = StorageOptions.newBuilder()
                     .setCredentials(credentials)
+                    .setProjectId("owlpost-8925a")
                     .build()
                     .getService();
-            bucketName = "\n" +
-                    "owlpost-8925a.appspot.com"; // Replace with your bucket name
+            bucketName = "owlpost-8925a.firebasestorage.app";
 
         } catch (IOException e) {
             System.out.println("Firebase initialization failed: " + e.getMessage());
@@ -76,23 +71,20 @@ public class DatabaseHandler {
         }
 
         try {
-            // Create user document
             Map<String, Object> userData = new HashMap<>();
             userData.put("username", client.getUsername());
-            userData.put("password", client.getPassword()); // In production, hash this!
+            userData.put("password", client.getPassword());
             userData.put("email", client.getEmail());
             userData.put("date_of_birth", client.getDateofbirth().toString());
             userData.put("house", client.getHouse());
             userData.put("patronus", client.getPatronus());
             userData.put("created_at", new Date());
 
-            // Upload profile picture to Firebase Storage
             String profilePicUrl = uploadProfilePicture(client.getUsername(), profilePic);
             userData.put("profile_picture_url", profilePicUrl);
 
-            // Save to Firestore
             ApiFuture<WriteResult> future = db.collection("users").document(client.getUsername()).set(userData);
-            future.get(); // Wait for completion
+            future.get();
 
             return true;
         } catch (Exception e) {
@@ -161,15 +153,13 @@ public class DatabaseHandler {
 
     public Image getProfilePicture(String username) {
         try {
-            // Get profile picture URL from Firestore
             ApiFuture<DocumentSnapshot> future = db.collection("users").document(username).get();
             DocumentSnapshot document = future.get();
 
             if (document.exists()) {
                 String profilePicUrl = document.getString("profile_picture_url");
                 if (profilePicUrl != null && !profilePicUrl.isEmpty()) {
-                    // Download from Firebase Storage
-                    BlobId blobId = BlobId.of(bucketName, "profile_pictures/" + username);
+                    BlobId blobId = BlobId.of(bucketName, profilePicUrl);
                     Blob blob = storage.get(blobId);
 
                     if (blob != null) {
@@ -198,7 +188,7 @@ public class DatabaseHandler {
 
             storage.create(blobInfo, fileData);
 
-            return fileName; // Return the file path in storage
+            return fileName;
         } catch (Exception e) {
             System.out.println("Profile picture upload failed: " + e.getMessage());
             return null;
@@ -275,8 +265,6 @@ public class DatabaseHandler {
     }
 
     public void close() {
-        // Firebase handles connections automatically
-        // No explicit close needed, but you can shutdown if required
         try {
             if (FirebaseApp.getApps().size() > 0) {
                 FirebaseApp.getInstance().delete();
@@ -295,7 +283,6 @@ public class DatabaseHandler {
             messageData.put("timestamp", new Date());
 
             if (msg.isFile()) {
-                // Upload file to Firebase Storage
                 String fileUrl = uploadChatFile(msg.getSender(), msg.getReceiver(),
                         msg.getFileName(), msg.getFileData());
                 messageData.put("file_name", msg.getFileName());
@@ -307,7 +294,6 @@ public class DatabaseHandler {
                 messageData.put("file_url", null);
             }
 
-            // Save to chat_history collection
             ApiFuture<DocumentReference> future = db.collection("chat_history").add(messageData);
             future.get();
 
@@ -322,39 +308,49 @@ public class DatabaseHandler {
         List<ChatMessage> messages = new ArrayList<>();
 
         try {
-            // Query for messages between two users
-            ApiFuture<QuerySnapshot> future = db.collection("chat_history")
-                    .whereIn("sender", Arrays.asList(user1, user2))
-                    .whereIn("receiver", Arrays.asList(user1, user2))
-                    .orderBy("timestamp", Query.Direction.ASCENDING)
-                    .get();
+            ApiFuture<QuerySnapshot> future = db.collection("chat_history").get();
+            List<QueryDocumentSnapshot> allDocuments = future.get().getDocuments();
 
-            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
-            for (DocumentSnapshot document : documents) {
+            List<DocumentSnapshot> relevantDocuments = new ArrayList<>();
+            for (DocumentSnapshot document : allDocuments) {
                 String sender = document.getString("sender");
                 String receiver = document.getString("receiver");
-                boolean isFile = document.getBoolean("is_file");
 
-                // Only include messages between the two specified users
                 if ((sender.equals(user1) && receiver.equals(user2)) ||
                         (sender.equals(user2) && receiver.equals(user1))) {
-
-                    ChatMessage msg;
-                    if (isFile) {
-                        String fileName = document.getString("file_name");
-                        String fileUrl = document.getString("file_url");
-                        byte[] fileData = downloadChatFile(fileUrl);
-                        msg = new ChatMessage(sender, receiver, fileName, fileData);
-                    } else {
-                        msg = new ChatMessage(sender, receiver, document.getString("content"));
-                    }
-
-                    messages.add(msg);
+                    relevantDocuments.add(document);
                 }
+            }
+
+            relevantDocuments.sort((doc1, doc2) -> {
+                Date timestamp1 = doc1.getDate("timestamp");
+                Date timestamp2 = doc2.getDate("timestamp");
+                if (timestamp1 == null || timestamp2 == null) return 0;
+                return timestamp1.compareTo(timestamp2);
+            });
+
+            for (DocumentSnapshot document : relevantDocuments) {
+                String sender = document.getString("sender");
+                String receiver = document.getString("receiver");
+                Boolean isFileObj = document.getBoolean("is_file");
+                boolean isFile = isFileObj != null ? isFileObj : false;
+
+                ChatMessage msg;
+                if (isFile) {
+                    String fileName = document.getString("file_name");
+                    String fileUrl = document.getString("file_url");
+                    byte[] fileData = downloadChatFile(fileUrl);
+                    msg = new ChatMessage(sender, receiver, fileName, fileData);
+                } else {
+                    String content = document.getString("content");
+                    msg = new ChatMessage(sender, receiver, content != null ? content : "");
+                }
+
+                messages.add(msg);
             }
         } catch (Exception e) {
             System.out.println("Error loading chat history: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return messages;
