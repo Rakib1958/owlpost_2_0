@@ -12,6 +12,8 @@ module com.example.owlpost_2_0 {
     requires google.cloud.firestore;
     requires google.cloud.storage;
     requires com.google.api.apicommon;
+    requires okhttp3;
+    requires org.json;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;
