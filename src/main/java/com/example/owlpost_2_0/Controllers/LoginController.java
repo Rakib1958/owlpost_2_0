@@ -24,6 +24,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.Random;
 import java.util.ResourceBundle;
+import javafx.concurrent.Task;
 
 public class LoginController implements Initializable {
     // buttons
@@ -442,15 +443,33 @@ public class LoginController implements Initializable {
             showAlert("concentrate", "Concentrate Potter !", "Please fill in all fields");
             return;
         }
-        client = dbHandler.login(username, password);
-        if (client != null) {
-            showAlert("", "Welcome back " + client.getUsername() + "!", "You're enrolled at Hogwarts!");
-            ToChatRoom(btn);
-            Audios.stopAmbience();
-        }
-        else {
+        loginBtn.setDisable(true);
+
+        Task<Client> loginTask = new Task<Client>() {
+            @Override
+            protected Client call() throws Exception {
+                return dbHandler.login(username, password);
+            }
+        };
+
+        loginTask.setOnSucceeded(e -> {
+            client = loginTask.getValue();
+            loginBtn.setDisable(false);
+            if (client != null) {
+                showAlert("", "Welcome back " + client.getUsername() + "!", "You're enrolled at Hogwarts!");
+                ToChatRoom(btn);
+                Audios.stopAmbience();
+            } else {
+                showAlert("father", "No such wizard!", "Check your credentials again.");
+            }
+        });
+
+        loginTask.setOnFailed(e -> {
+            loginBtn.setDisable(false);
             showAlert("father", "No such wizard!", "Check your credentials again.");
-        }
+        });
+
+        new Thread(loginTask).start();
     }
 
     public void handleHyperLink(ActionEvent event) {

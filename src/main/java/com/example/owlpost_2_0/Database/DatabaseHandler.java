@@ -20,12 +20,16 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import com.google.cloud.firestore.Query;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DatabaseHandler {
     private static DatabaseHandler instance;
     private Firestore db;
     private Storage storage;
     private String bucketName;
+
+    private Map<String, Image> profileImageCache = new ConcurrentHashMap<>();
 
     private DatabaseHandler() {
         initializeFirebase();
@@ -57,6 +61,10 @@ public class DatabaseHandler {
                     .build()
                     .getService();
             bucketName = "owlpost-8925a.firebasestorage.app";
+            FirestoreOptions firestoreOptions = FirestoreOptions.newBuilder()
+                    .setCredentials(credentials)
+                    .setProjectId("owlpost-8925a")
+                    .build();
 
         } catch (IOException e) {
             System.out.println("Firebase initialization failed: " + e.getMessage());
@@ -144,6 +152,8 @@ public class DatabaseHandler {
 
             ApiFuture<WriteResult> future = db.collection("users").document(username).update(updates);
             future.get();
+            removeFromProfileImageCache(username);
+
             return true;
         } catch (Exception e) {
             System.out.println("Profile picture update failed: " + e.getMessage());
@@ -152,6 +162,12 @@ public class DatabaseHandler {
     }
 
     public Image getProfilePicture(String username) {
+        if (profileImageCache.containsKey(username)) {
+            System.out.println("Loading profile image from cache for: " + username);
+            return profileImageCache.get(username);
+        }
+
+        System.out.println("Loading profile image from Firebase for: " + username);
         try {
             ApiFuture<DocumentSnapshot> future = db.collection("users").document(username).get();
             DocumentSnapshot document = future.get();
@@ -164,15 +180,31 @@ public class DatabaseHandler {
 
                     if (blob != null) {
                         byte[] content = blob.getContent();
-                        return new Image(new ByteArrayInputStream(content));
+                        Image image = new Image(new ByteArrayInputStream(content));
+                        profileImageCache.put(username, image);
+                        System.out.println("Cached profile image for: " + username);
+
+                        return image;
                     }
                 }
             }
         } catch (Exception e) {
-            System.out.println("Failed to fetch profile picture: " + e.getMessage());
+            System.out.println("Failed to fetch profile picture for " + username + ": " + e.getMessage());
         }
         return null;
     }
+
+    public void clearProfileImageCache() {
+        profileImageCache.clear();
+        System.out.println("Profile image cache cleared");
+    }
+
+    public void removeFromProfileImageCache(String username) {
+        profileImageCache.remove(username);
+        System.out.println("Removed " + username + " from profile image cache");
+    }
+
+
 
     private String uploadProfilePicture(String username, File file) {
         if (file == null || !file.exists()) return null;
@@ -282,6 +314,11 @@ public class DatabaseHandler {
             messageData.put("is_file", msg.isFile());
             messageData.put("timestamp", new Date());
 
+            String conversationId = msg.getSender().compareTo(msg.getReceiver()) < 0 ?
+                    msg.getSender() + "_" + msg.getReceiver() :
+                    msg.getReceiver() + "_" + msg.getSender();
+            messageData.put("conversation_id", conversationId);
+
             if (msg.isFile()) {
                 String fileUrl = uploadChatFile(msg.getSender(), msg.getReceiver(),
                         msg.getFileName(), msg.getFileData());
@@ -308,28 +345,27 @@ public class DatabaseHandler {
         List<ChatMessage> messages = new ArrayList<>();
 
         try {
-            ApiFuture<QuerySnapshot> future = db.collection("chat_history").get();
-            List<QueryDocumentSnapshot> allDocuments = future.get().getDocuments();
+            ApiFuture<QuerySnapshot> future1 = db.collection("chat_history")
+                    .whereEqualTo("sender", user1)
+                    .whereEqualTo("receiver", user2)
+                    .get();
 
-            List<DocumentSnapshot> relevantDocuments = new ArrayList<>();
-            for (DocumentSnapshot document : allDocuments) {
-                String sender = document.getString("sender");
-                String receiver = document.getString("receiver");
+            ApiFuture<QuerySnapshot> future2 = db.collection("chat_history")
+                    .whereEqualTo("sender", user2)
+                    .whereEqualTo("receiver", user1)
+                    .get();
 
-                if ((sender.equals(user1) && receiver.equals(user2)) ||
-                        (sender.equals(user2) && receiver.equals(user1))) {
-                    relevantDocuments.add(document);
-                }
-            }
-
-            relevantDocuments.sort((doc1, doc2) -> {
+            List<DocumentSnapshot> allDocs = new ArrayList<>();
+            allDocs.addAll(future1.get().getDocuments());
+            allDocs.addAll(future2.get().getDocuments());
+            allDocs.sort((doc1, doc2) -> {
                 Date timestamp1 = doc1.getDate("timestamp");
                 Date timestamp2 = doc2.getDate("timestamp");
                 if (timestamp1 == null || timestamp2 == null) return 0;
                 return timestamp1.compareTo(timestamp2);
             });
 
-            for (DocumentSnapshot document : relevantDocuments) {
+            for (DocumentSnapshot document : allDocs) {
                 String sender = document.getString("sender");
                 String receiver = document.getString("receiver");
                 Boolean isFileObj = document.getBoolean("is_file");
@@ -345,16 +381,69 @@ public class DatabaseHandler {
                     String content = document.getString("content");
                     msg = new ChatMessage(sender, receiver, content != null ? content : "");
                 }
-
                 messages.add(msg);
             }
+
         } catch (Exception e) {
             System.out.println("Error loading chat history: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return messages;
     }
+
+//    private List<ChatMessage> loadChatHistoryFallback(String user1, String user2) {
+//        List<ChatMessage> messages = new ArrayList<>();
+//
+//        try {
+//            ApiFuture<QuerySnapshot> future1 = db.collection("chat_history")
+//                    .whereEqualTo("sender", user1)
+//                    .whereEqualTo("receiver", user2)
+//                    .orderBy("timestamp", Query.Direction.ASCENDING)
+//                    .get();
+//
+//            ApiFuture<QuerySnapshot> future2 = db.collection("chat_history")
+//                    .whereEqualTo("sender", user2)
+//                    .whereEqualTo("receiver", user1)
+//                    .orderBy("timestamp", Query.Direction.ASCENDING)
+//                    .get();
+//
+//            List<DocumentSnapshot> allDocs = new ArrayList<>();
+//            allDocs.addAll(future1.get().getDocuments());
+//            allDocs.addAll(future2.get().getDocuments());
+//
+//            // Sort by timestamp in Java
+//            allDocs.sort((doc1, doc2) -> {
+//                Date timestamp1 = doc1.getDate("timestamp");
+//                Date timestamp2 = doc2.getDate("timestamp");
+//                if (timestamp1 == null || timestamp2 == null) return 0;
+//                return timestamp1.compareTo(timestamp2);
+//            });
+//
+//            for (DocumentSnapshot document : allDocs) {
+//                String sender = document.getString("sender");
+//                String receiver = document.getString("receiver");
+//                Boolean isFileObj = document.getBoolean("is_file");
+//                boolean isFile = isFileObj != null ? isFileObj : false;
+//
+//                ChatMessage msg;
+//                if (isFile) {
+//                    String fileName = document.getString("file_name");
+//                    String fileUrl = document.getString("file_url");
+//                    byte[] fileData = downloadChatFile(fileUrl);
+//                    msg = new ChatMessage(sender, receiver, fileName, fileData);
+//                } else {
+//                    String content = document.getString("content");
+//                    msg = new ChatMessage(sender, receiver, content != null ? content : "");
+//                }
+//                messages.add(msg);
+//            }
+//
+//        } catch (Exception e) {
+//            System.out.println("Fallback method error: " + e.getMessage());
+//        }
+//
+//        return messages;
+//    }
 
     public List<Client> loadUsers() {
         List<Client> users = new ArrayList<>();

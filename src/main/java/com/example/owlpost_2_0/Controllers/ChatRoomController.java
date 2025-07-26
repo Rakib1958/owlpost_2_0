@@ -33,6 +33,8 @@ import java.net.URL;
 import java.sql.Time;
 import java.time.LocalTime;
 import java.util.*;
+import javafx.concurrent.Task;
+import javafx.application.Platform;
 
 import static java.nio.file.Files.readAllBytes;
 
@@ -948,13 +950,33 @@ public class ChatRoomController implements Initializable {
     public void getClient(Client client) {
         this.client = client;
         System.out.println("Got client");
-
-        Image userProfileImage = loadProfileImage(client.getProfilePicturePath());
-        userImage.setImage(userProfileImage);
+        loadUserProfileImageAsync();
         userIdLabel.setText(client.getUsername());
+        setupBackgroundAndUI();
+        initializeChatClientAsync();
+        loadFriendsAsync();
+    }
 
-        setCircularImage(userImage, userImageClip, userProfileImage);
+    private void loadUserProfileImageAsync() {
+        Task<Image> userImageTask = new Task<Image>() {
+            @Override
+            protected Image call() throws Exception {
+                return loadProfileImage(client.getProfilePicturePath());
+            }
+        };
 
+        userImageTask.setOnSucceeded(e -> {
+            Platform.runLater(() -> {
+                Image userProfileImage = userImageTask.getValue();
+                userImage.setImage(userProfileImage);
+                setCircularImage(userImage, userImageClip, userProfileImage);
+            });
+        });
+
+        new Thread(userImageTask).start();
+    }
+
+    private void setupBackgroundAndUI() {
         ImageView backgroundImageView = new ImageView();
         backgroundImageView.setImage(new Image(getClass().getResource("/com/example/owlpost_2_0/Images/LoginForm/slytherin.gif").toExternalForm()));
         backgroundImageView.setFitWidth(319);
@@ -963,25 +985,28 @@ public class ChatRoomController implements Initializable {
         backgroundImageView.setPreserveRatio(false);
 
         leftbase.getChildren().add(0, backgroundImageView);
-        leftpane.setStyle(
-                "-fx-background-color: transparent; " + "-fx-background: transparent;" +
-                        "-fx-background-radius: 10; " +
-                        "-fx-padding: 10;"
-        );
-        friendslist.setStyle("-fx-background-color: rgba(0,0,0,0.3); " + "-fx-background: transparent;" + "-fx-padding: 10;");
+        leftpane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-radius: 10; -fx-padding: 10;");
+        friendslist.setStyle("-fx-background-color: rgba(0,0,0,0.3); -fx-background: transparent; -fx-padding: 10;");
+
         UpdateBG();
         setUpBackgroundTimer();
+    }
 
-        try {
-            chatClient = new ChatClient(IpNiyeMaramari.serverip, client.getUsername());
-            chatClient.listenForMsg(this::handleIncomingMsg);
-        } catch (Exception e) {
-            System.out.println("Error connecting to server");
-        }
+    private void initializeChatClientAsync() {
+        Task<Void> chatClientTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                chatClient = new ChatClient(IpNiyeMaramari.serverip, client.getUsername());
+                chatClient.listenForMsg(ChatRoomController.this::handleIncomingMsg);
+                return null;
+            }
+        };
 
-        List<Client> allclients = DatabaseHandler.getInstance().loadUsers();
-        loadFriends(allclients);
+        chatClientTask.setOnFailed(e -> {
+            System.out.println("Error connecting to server: " + chatClientTask.getException().getMessage());
+        });
 
+        new Thread(chatClientTask).start();
     }
 
     private void setUpBackgroundTimer() {
@@ -1013,14 +1038,14 @@ public class ChatRoomController implements Initializable {
         card.setPrefWidth(300);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(5));
-        String pp = c.getProfilePicturePath();
-        Image avatarImage=loadProfileImage(pp);
-        ImageView img = new ImageView(avatarImage);
+
+        ImageView img = new ImageView();
         img.setFitWidth(40);
         img.setFitHeight(48);
         Circle clip = new Circle(24, 24, 24);
-        //Image friendImage = loadProfileImage(c.getProfilePicturePath());
-        //setCircularImage(img, clip, friendImage);
+        img.setClip(clip);
+        img.setImage(loadDefaultProfileImage());
+        loadProfileImageAsync(c.getProfilePicturePath(), img);
 
         Label name = new Label(c.getUsername());
         name.setStyle("-fx-text-fill: white; " +
@@ -1028,6 +1053,28 @@ public class ChatRoomController implements Initializable {
                 "-fx-font-size: 14px;");
         card.getChildren().addAll(img, name);
         return card;
+    }
+
+    private void loadProfileImageAsync(String profilePicturePath, ImageView imageView) {
+        Task<Image> imageTask = new Task<Image>() {
+            @Override
+            protected Image call() throws Exception {
+                return loadProfileImage(profilePicturePath);
+            }
+        };
+
+        imageTask.setOnSucceeded(e -> {
+            Image loadedImage = imageTask.getValue();
+            if (loadedImage != null) {
+                Platform.runLater(() -> imageView.setImage(loadedImage));
+            }
+        });
+
+        imageTask.setOnFailed(e -> {
+            System.out.println("Failed to load profile image: " + imageTask.getException().getMessage());
+        });
+
+        new Thread(imageTask).start();
     }
 
     private void styleFriendCard(HBox card, Client c) {
@@ -1074,21 +1121,75 @@ public class ChatRoomController implements Initializable {
 
     private void loadChatHistory(String sender, String receiver) {
         msgbox.getChildren().clear();
+        Label loadingLabel = new Label("Loading chat history...");
+        loadingLabel.setStyle("-fx-text-fill: white; -fx-font-style: italic;");
+        HBox loadingBox = new HBox(loadingLabel);
+        loadingBox.setAlignment(Pos.CENTER);
+        msgbox.getChildren().add(loadingBox);
 
-        try {
-            List<ChatMessage> messages = DatabaseHandler.getInstance().loadChatHistory(sender, receiver);
-
-            if (messages != null && !messages.isEmpty()) {
-                for (ChatMessage msg : messages) {
-                    showMessageInChat(msg);
-                }
-            } else {
-                System.out.println("No chat history found between " + sender + " and " + receiver);
+        Task<List<ChatMessage>> loadChatTask = new Task<List<ChatMessage>>() {
+            @Override
+            protected List<ChatMessage> call() throws Exception {
+                return DatabaseHandler.getInstance().loadChatHistory(sender, receiver);
             }
-        } catch (Exception e) {
-            System.out.println("Error loading chat history: " + e.getMessage());
-            e.printStackTrace();
-        }
+        };
+
+        loadChatTask.setOnSucceeded(e -> {
+            Platform.runLater(() -> {
+                msgbox.getChildren().clear();
+                List<ChatMessage> messages = loadChatTask.getValue();
+
+                if (messages != null && !messages.isEmpty()) {
+                    for (ChatMessage msg : messages) {
+                        showMessageInChat(msg);
+                    }
+                } else {
+                    Label noMessagesLabel = new Label("No messages yet. Start the conversation!");
+                    noMessagesLabel.setStyle("-fx-text-fill: #cccccc; -fx-font-style: italic;");
+                    HBox noMsgBox = new HBox(noMessagesLabel);
+                    noMsgBox.setAlignment(Pos.CENTER);
+                    msgbox.getChildren().add(noMsgBox);
+                }
+            });
+        });
+
+        loadChatTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                msgbox.getChildren().clear();
+                Label errorLabel = new Label("Failed to load chat history. Please try again.");
+                errorLabel.setStyle("-fx-text-fill: #ff6b6b; -fx-font-style: italic;");
+                HBox errorBox = new HBox(errorLabel);
+                errorBox.setAlignment(Pos.CENTER);
+                msgbox.getChildren().add(errorBox);
+            });
+        });
+
+        new Thread(loadChatTask).start();
+    }
+
+    private void loadFriendsAsync() {
+        Task<List<Client>> loadFriendsTask = new Task<List<Client>>() {
+            @Override
+            protected List<Client> call() throws Exception {
+                return DatabaseHandler.getInstance().loadUsers();
+            }
+        };
+
+        loadFriendsTask.setOnSucceeded(e -> {
+            List<Client> allClients = loadFriendsTask.getValue();
+            Platform.runLater(() -> loadFriends(allClients));
+        });
+
+        loadFriendsTask.setOnFailed(e -> {
+            System.out.println("Failed to load friends: " + loadFriendsTask.getException().getMessage());
+            Platform.runLater(() -> {
+                Label errorLabel = new Label("Failed to load friends");
+                errorLabel.setStyle("-fx-text-fill: #ff6b6b;");
+                friendslist.getChildren().add(errorLabel);
+            });
+        });
+
+        new Thread(loadFriendsTask).start();
     }
 
     private void setCircularImage(ImageView imageView, Circle clip, Image imagePath) {
