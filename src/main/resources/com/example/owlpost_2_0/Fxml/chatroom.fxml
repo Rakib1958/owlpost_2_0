@@ -40,21 +40,10 @@
             <children>
             <ImageView fitHeight="744.0" fitWidth="356.0" pickOnBounds="true">
                <image>
-                  <Image url="@../Images/LoginForm/sidebar.gif" />
+                  <Image url="@../Images/Game/room.png" />
                </image>
             </ImageView>
-                <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;">
-               <children>
-                  <ImageView fx:id="userImage1" fitHeight="94.0" fitWidth="99.0" layoutX="129.0" layoutY="75.0">
-                     <clip>
-                        <Circle fx:id="userImageClip1" centerX="32" centerY="32" radius="32" />
-                     </clip>
-                  </ImageView>
-                  <Button fx:id="changeDOBtn" layoutX="205.0" layoutY="149.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="47.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-background-radius: 30;" text="📷" />
-                  <Label layoutX="27.0" layoutY="221.0" text="Name" textFill="WHITE" />
-                  <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" textFill="#b4b4b4" />
-                  <Label layoutX="27.0" layoutY="323.0" text="Label" />
-               </children></Pane>
+                <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;" />
                 <Pane prefHeight="200.0" prefWidth="200.0" visible="false" />
                 <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
                 <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
