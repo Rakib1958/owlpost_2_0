@@ -1,6 +1,9 @@
 package com.example.owlpost_2_0.Gemini;
 
 import okhttp3.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 public class GeminiApiClient {
@@ -13,6 +16,7 @@ public class GeminiApiClient {
 
     public GeminiApiClient(String apiKey) {
         this.apiKey = apiKey;
+        System.out.println(apiKey);
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                 .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
@@ -27,47 +31,42 @@ public class GeminiApiClient {
         }
         lastRequestTime = System.currentTimeMillis();
 
-        // Create the request body
-        String json = String.format("""
-            {
-                "contents": [{
-                    "parts": [{
-                        "text": "%s"
-                    }]
-                }],
-                "generationConfig": {
-                    "temperature": 0.7,
-                    "maxOutputTokens": 1000
-                }
-            }
-            """, prompt.replace("\"", "\\\"").replace("\n", "\\n"));
+        // Safe JSON build
+        JSONObject part = new JSONObject().put("text", prompt);
+        JSONArray parts = new JSONArray().put(part);
+        JSONObject content = new JSONObject().put("parts", parts);
+        JSONArray contents = new JSONArray().put(content);
+
+        JSONObject generationConfig = new JSONObject();
+        generationConfig.put("temperature", 0.7);
+        generationConfig.put("maxOutputTokens", 1000);
+
+        JSONObject payload = new JSONObject();
+        payload.put("contents", contents);
+        payload.put("generationConfig", generationConfig);
+
+        String json = payload.toString();
+//        System.out.println("Request JSON:\n" + json); // Debug log
 
         RequestBody body = RequestBody.create(
-                json,
-                MediaType.parse("application/json; charset=utf-8")
+                json, MediaType.parse("application/json; charset=utf-8")
         );
+
         Request request = new Request.Builder()
-                .url(BASE_URL + "?key=" + apiKey)
+                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey)
                 .post(body)
                 .addHeader("Content-Type", "application/json")
                 .build();
-        int maxRetries = 3;
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                    return response.body().string();
-                } else if (response.code() == 429) {
-                    if (attempt < maxRetries) {
-                        System.out.println("Rate limited. Waiting before retry " + attempt + "...");
-                        Thread.sleep(5000 * attempt);
-                        continue;
-                    }
-                    throw new IOException("Rate limit exceeded after " + maxRetries + " attempts. Response: " + response);
-                } else {
-                    throw new IOException("HTTP error " + response.code() + ": " + response.message());
-                }
+
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                System.out.println("HTTP Code: " + response.code());
+                System.out.println("Error Body: " + responseBody);
+                throw new IOException("HTTP error " + response.code() + ": " + response.message());
             }
+            return responseBody;
         }
-        throw new IOException("Failed after " + maxRetries + " attempts");
     }
+
 }
