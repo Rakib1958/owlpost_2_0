@@ -1,6 +1,7 @@
 package com.example.owlpost_2_0.Client;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 public class Client {
@@ -11,6 +12,8 @@ public class Client {
     private String house;
     private String patronus;
     private String profilePicturePath;
+    private boolean isOnline;
+    private Date lastSeen;
 
     public Client() {}
 
@@ -139,6 +142,11 @@ public class Client {
                 ", profilePicPath='" + profilePicturePath + '\'' +
                 '}';
     }
+
+    public boolean isOnline() { return isOnline; }
+    public void setOnline(boolean online) { isOnline = online; }
+    public Date getLastSeen() { return lastSeen; }
+    public void setLastSeen(Date lastSeen) { this.lastSeen = lastSeen; }
 
     @Override
     public int hashCode() {

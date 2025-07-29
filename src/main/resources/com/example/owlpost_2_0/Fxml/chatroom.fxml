@@ -54,6 +54,17 @@
                   <Label layoutX="27.0" layoutY="221.0" text="Name" textFill="WHITE" />
                   <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" textFill="#b4b4b4" />
                   <Label layoutX="27.0" layoutY="323.0" text="Label" />
+                   <Button fx:id="createGroupBtn" layoutX="36.0" layoutY="29.0"
+                           mnemonicParsing="false" onAction="#createGroup"
+                           prefHeight="35.0" prefWidth="300.0"
+                           styleClass="sending-btn" text="➕ Create New Group" textFill="WHITE">
+                       <font>
+                           <Font name="Arial Bold" size="13.0" />
+                       </font>
+                       <cursor>
+                           <Cursor fx:constant="HAND" />
+                       </cursor>
+                   </Button>
                </children></Pane>
                 <Pane prefHeight="200.0" prefWidth="200.0" visible="false" />
                 <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />

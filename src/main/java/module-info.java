@@ -15,6 +15,8 @@ module com.example.owlpost_2_0 {
     requires com.google.auth;
     requires google.cloud.core;
     requires javafx.swing;
+    requires org.json;
+    requires okhttp3;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;
