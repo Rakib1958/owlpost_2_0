@@ -132,6 +132,10 @@ public class ChatRoomController implements Initializable {
     private TextArea groupDescriptionField;
     private ListView<String> availableUsersListView;
     private ListView<String> selectedMembersListView;
+    private HBox groupButtonsContainer;
+    private Button groupInfoBtn;
+    private Button addMemberBtn;
+    private Button leaveGroupBtn;
 
     private void initializeCallUI() {
         if (callOverlay == null) {
@@ -1388,6 +1392,7 @@ public class ChatRoomController implements Initializable {
         setCircularImage(clientImage, clientImageClip, loadDefaultGroupImage());
         msgbox.getChildren().clear();
         loadGroupChatHistoryInMainChat(group.getGroupId());
+        showGroupButtons();
     }
 
     private void loadGroupChatHistoryInMainChat(String groupId) {
@@ -1657,6 +1662,7 @@ public class ChatRoomController implements Initializable {
     }
 
     private void switchToDirectChat(Client client) {
+        hideGroupButtons();
         isGroupChatMode = false;
         currentSelectedGroup = null;
         currentReceiver = client.getUsername();
@@ -1741,13 +1747,7 @@ public class ChatRoomController implements Initializable {
 
     private void styleFriendCard(HBox card, Client c) {
         card.setOnMouseClicked(e -> {
-            currentReceiver = c.getUsername();
-            msgbox.getChildren().clear();
-            loadChatHistory(client.getUsername(), currentReceiver);
-
-            clientImage.setImage(loadProfileImage(c.getProfilePicturePath()));
-            clientIdLabel.setText(c.getUsername());
-
+            switchToDirectChat(c);
             updateFriendCardStyle(card);
         });
 
@@ -2131,6 +2131,102 @@ public class ChatRoomController implements Initializable {
 
         } catch (Exception e) {
             System.out.println("Error setting background: " + e.getMessage());
+        }
+    }
+
+    private void createGroupButtons() {
+        if (groupButtonsContainer == null) {
+            groupButtonsContainer = new HBox(10);
+            groupButtonsContainer.setAlignment(Pos.CENTER);
+            groupButtonsContainer.setPadding(new Insets(5));
+            groupInfoBtn = new Button("ℹ️ Info");
+            groupInfoBtn.setStyle("-fx-background-color: #3498db; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-padding: 5 10; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-cursor: hand;");
+            groupInfoBtn.setOnAction(this::showGroupInfo);
+            addMemberBtn = new Button("➕ Add");
+            addMemberBtn.setStyle("-fx-background-color: #27ae60; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-padding: 5 10; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-cursor: hand;");
+            addMemberBtn.setOnAction(this::addMemberToGroup);
+            leaveGroupBtn = new Button("🚪 Leave");
+            leaveGroupBtn.setStyle("-fx-background-color: #e74c3c; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-padding: 5 10; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-cursor: hand;");
+            leaveGroupBtn.setOnAction(this::leaveGroup);
+
+            groupButtonsContainer.getChildren().addAll(groupInfoBtn, addMemberBtn, leaveGroupBtn);
+        }
+    }
+
+    private void showGroupButtons() {
+        createGroupButtons();
+        if (!chatbody.getChildren().contains(groupButtonsContainer)) {
+            int insertIndex = chatbody.getChildren().indexOf(userCard) + 1;
+            chatbody.getChildren().add(insertIndex, groupButtonsContainer);
+        }
+        groupButtonsContainer.setVisible(true);
+    }
+
+    private void hideGroupButtons() {
+        if (groupButtonsContainer != null) {
+            groupButtonsContainer.setVisible(false);
+            chatbody.getChildren().remove(groupButtonsContainer);
+        }
+    }
+
+    @FXML
+    private void addMemberToGroup(ActionEvent event) {
+        GroupChat currentGroup = getCurrentSelectedGroup();
+        if (currentGroup == null) return;
+        Dialog<List<String>> addMemberDialog = new Dialog<>();
+        addMemberDialog.setTitle("Add Members");
+        addMemberDialog.setHeaderText("Add members to " + currentGroup.getGroupName());
+        // ... implementation details
+    }
+
+    @FXML
+    private void leaveGroup(ActionEvent event) {
+        GroupChat currentGroup = getCurrentSelectedGroup();
+        if (currentGroup == null) return;
+
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Leave Group");
+        confirmDialog.setHeaderText("Leave " + currentGroup.getGroupName() + "?");
+        confirmDialog.setContentText("You will no longer receive messages from this group.");
+
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            Task<Boolean> leaveTask = new Task<Boolean>() {
+                @Override
+                protected Boolean call() throws Exception {
+                    return DatabaseHandler.getInstance().removeMemberFromGroup(
+                            currentGroup.getGroupId(), client.getUsername());
+                }
+            };
+
+            leaveTask.setOnSucceeded(e -> {
+                if (leaveTask.getValue()) {
+                    Platform.runLater(() -> {
+                        isGroupChatMode = false;
+                        currentSelectedGroup = null;
+                        msgbox.getChildren().clear();
+                        hideGroupButtons();
+                        loadFriendsAsync();
+                    });
+                }
+            });
+
+            new Thread(leaveTask).start();
         }
     }
 
