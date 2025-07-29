@@ -2,66 +2,117 @@ package com.example.owlpost_2_0.Controllers;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainUDP {
-    public static void main(String[] args) {
-        DatagramSocket socket = null;
+    private static volatile boolean isRunning = false;
+    private static DatagramSocket socket;
+    private static Thread serverThread;
+    private static ConcurrentHashMap<String, ClientInfo> clients = new ConcurrentHashMap<>();
+
+    static class ClientInfo {
+        InetAddress address;
+        int port;
+        long lastSeen;
+
+        ClientInfo(InetAddress address, int port) {
+            this.address = address;
+            this.port = port;
+            this.lastSeen = System.currentTimeMillis();
+        }
+
+        void updateLastSeen() {
+            this.lastSeen = System.currentTimeMillis();
+        }
+    }
+
+    public static void start(int port) {
+        if (isRunning) {
+            stop();
+        }
+
         try {
-            socket = new DatagramSocket(9806);
-        } catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("UDP relay server started");
+            socket = new DatagramSocket(port);
+            socket.setReceiveBufferSize(4096);
+            socket.setSendBufferSize(4096);
+            isRunning = true;
 
-        InetAddress client1Addr = null;
-        int client1Port = -1;
-        InetAddress client2Addr = null;
-        int client2Port = -1;
+            System.out.println("UDP Audio Relay Server started on port " + port);
 
-        byte[] buf = new byte[512];
-        DatagramPacket pkt = new DatagramPacket(buf, buf.length);
+            serverThread = new Thread(() -> {
+                byte[] buffer = new byte[1024];
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
-        while (true) {
-            try {
-                socket.receive(pkt);
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
-            }
+                while (isRunning && !Thread.currentThread().isInterrupted()) {
+                    try {
+                        socket.receive(packet);
 
-            InetAddress srcAddr = pkt.getAddress();
-            int srcPort = pkt.getPort();
+                        InetAddress srcAddr = packet.getAddress();
+                        int srcPort = packet.getPort();
+                        String clientKey = srcAddr.getHostAddress() + ":" + srcPort;
 
-            if (client1Addr == null) {
-                client1Addr = srcAddr;
-                client1Port = srcPort;
-                System.out.println("Client 1: " + client1Addr + ":" + client1Port);
-            } else if (client2Addr == null && !(srcAddr.equals(client1Addr) && srcPort == client1Port)) {
-                client2Addr = srcAddr;
-                client2Port = srcPort;
-                System.out.println("Client 2: " + client2Addr + ":" + client2Port);
-            }
+                        clients.compute(clientKey, (key, existingClient) -> {
+                            if (existingClient == null) {
+                                System.out.println("New client connected: " + key);
+                                return new ClientInfo(srcAddr, srcPort);
+                            } else {
+                                existingClient.updateLastSeen();
+                                return existingClient;
+                            }
+                        });
+                        for (ClientInfo client : clients.values()) {
+                            if (!(client.address.equals(srcAddr) && client.port == srcPort)) {
+                                try {
+                                    DatagramPacket forwardPacket = new DatagramPacket(
+                                            packet.getData(),
+                                            packet.getLength(),
+                                            client.address,
+                                            client.port
+                                    );
+                                    socket.send(forwardPacket);
+                                } catch (IOException e) {
+                                    System.err.println("Error forwarding to client: " + e.getMessage());
+                                }
+                            }
+                        }
+                        packet.setLength(buffer.length);
 
-            InetAddress destAddr = null;
-            int destPort = -1;
-            if (srcAddr.equals(client1Addr) && srcPort == client1Port) {
-                destAddr = client2Addr;
-                destPort = client2Port;
-            } else if (srcAddr.equals(client2Addr) && srcPort == client2Port) {
-                destAddr = client1Addr;
-                destPort = client1Port;
-            }
-
-            if (destAddr != null) {
-                DatagramPacket forward = new DatagramPacket(pkt.getData(), pkt.getLength(), destAddr, destPort);
-                try {
-                    socket.send(forward);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    } catch (IOException e) {
+                        if (isRunning) {
+                            System.err.println("Server error: " + e.getMessage());
+                        }
+                    }
                 }
-            }
+            }, "Audio-Relay-Server");
 
-            pkt.setLength(buf.length);
+            serverThread.start();
+
+        } catch (SocketException e) {
+            System.err.println("Failed to start audio relay server: " + e.getMessage());
         }
+    }
+
+    public static void stop() {
+        System.out.println("Stopping audio relay server...");
+        isRunning = false;
+
+        if (serverThread != null && serverThread.isAlive()) {
+            serverThread.interrupt();
+        }
+
+        if (socket != null && !socket.isClosed()) {
+            socket.close();
+        }
+
+        clients.clear();
+        System.out.println("Audio relay server stopped");
+    }
+
+    public static void main(String[] args) {
+        start(9806);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutting down server...");
+            stop();
+        }));
     }
 }

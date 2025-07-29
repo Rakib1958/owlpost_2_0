@@ -2,6 +2,7 @@ package com.example.owlpost_2_0.Server;
 
 
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
+import com.example.owlpost_2_0.Database.DatabaseHandler;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,12 +15,10 @@ public class ClientHandler implements Runnable {
     private ObjectOutputStream out;
     private String username;
 
-    // constructor accepts socket
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
 
-    // gets input and output stream and takes the username from client
     @Override
     public void run() {
         try {
@@ -33,20 +32,21 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // setup streams
     private void setupStreams() throws Exception{
         out = new ObjectOutputStream(socket.getOutputStream());
         out.flush();
         in = new ObjectInputStream(socket.getInputStream());
     }
 
-    // get username from client whenever they are connected
     private void readUsername() throws Exception{
-        this.username = (String) in.readObject(); // First message is username
+        this.username = (String) in.readObject();
         System.out.println(username + " connected.");
+        DatabaseHandler.getInstance().updateOnlineStatus(username, true);
+        Server.broadcastStatusChange(username, true);
+        ChatMessage statusMsg = new ChatMessage("SYSTEM", "ALL", "USER_ONLINE:" + username);
+        Server.broadcast(statusMsg);
     }
 
-    // continuously reads message until the server is closed and wraps it in a ChatMessage class
     private void listenForMsg() {
         while (!socket.isClosed()) {
             try {
@@ -63,10 +63,15 @@ public class ClientHandler implements Runnable {
         return username;
     }
 
-    // gracefully disconnect
     private void cleanup() {
         try {
             Server.removeClient(this);
+            if (username != null) {
+                DatabaseHandler.getInstance().updateOnlineStatus(username, false);
+                Server.broadcastStatusChange(username, false);
+                ChatMessage statusMsg = new ChatMessage("SYSTEM", "ALL", "USER_OFFLINE:" + username);
+                Server.broadcast(statusMsg);
+            }
             if (in != null) in.close();
             if (out != null) out.close();
             if (socket != null && !socket.isClosed()) socket.close();
@@ -76,9 +81,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // write a ChatMessage as object into the output stream
     public void send(ChatMessage msg) {
         try {
+            if (socket.isClosed() || out == null) {
+                cleanup();
+                return;
+            }
             out.writeObject(msg);
             out.flush();
         } catch (IOException e) {

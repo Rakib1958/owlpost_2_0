@@ -1,6 +1,7 @@
 package com.example.owlpost_2_0.Client;
 
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
+import com.example.owlpost_2_0.Database.DatabaseHandler;
 import javafx.application.Platform;
 
 import java.io.ObjectInputStream;
@@ -15,7 +16,6 @@ public class ChatClient {
     private boolean isConnected = false;
     private String username;
 
-    // connects to the server in the chatroom using the ip address and username
     public ChatClient(String serverIP, String username) throws Exception{
         this.username = username;
         socket = new Socket(serverIP, 1234);
@@ -25,6 +25,7 @@ public class ChatClient {
         out.writeObject(username);
         out.flush();
         isConnected = true;
+        DatabaseHandler.getInstance().updateOnlineStatusAsync(username, true, null);
         System.out.println("Connected to server as " + username);
     }
 
@@ -35,7 +36,6 @@ public class ChatClient {
         }
     }
 
-    // continuously listens for message in a different thread
     public void listenForMsg(Consumer<ChatMessage> messageHandler) {
         new Thread(() -> {
             try {
@@ -57,36 +57,31 @@ public class ChatClient {
         }).start();
     }
 
-//    // Send call initiation signal
 //    public void initiateCall(String receiverUsername, String callType) throws Exception {
 //        if (isConnected) {
 //            ChatMessage callMsg = new ChatMessage(username, receiverUsername, callType);
 //            sendMessage(callMsg);
 //        }
 //    }
-//
-//    // Send call response signal
+
 //    public void respondToCall(String callerUsername, String response) throws Exception {
 //        if (isConnected) {
 //            ChatMessage responseMsg = new ChatMessage(username, callerUsername, response);
 //            sendMessage(responseMsg);
 //        }
 //    }
-//
-//    // Send call end signal
+
 //    public void endCall(String otherUsername) throws Exception {
 //        if (isConnected) {
 //            ChatMessage endMsg = new ChatMessage(username, otherUsername, "CALL_ENDED");
 //            sendMessage(endMsg);
 //        }
 //    }
-//
-//    // Get connection status
+
 //    public boolean isConnected() {
 //        return isConnected && socket != null && !socket.isClosed();
 //    }
-//
-//    // Get username
+
 //    public String getUsername() {
 //        return username;
 //    }
@@ -94,6 +89,9 @@ public class ChatClient {
     public void disconnect() {
         try {
             isConnected = false;
+            if (username != null) {
+                DatabaseHandler.getInstance().updateOnlineStatusAsync(username, false, null);
+            }
             if (in != null) in.close();
             if (out != null) out.close();
             if (socket != null && !socket.isClosed()) socket.close();
