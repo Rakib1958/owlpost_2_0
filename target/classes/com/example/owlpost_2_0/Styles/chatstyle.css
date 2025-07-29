@@ -47,3 +47,7 @@
     -fx-border-color: white white white white;
     -fx-border-radius: 4;
 }
+
+.emoji-btn {
+    -fx-background-color: transparent;
+}

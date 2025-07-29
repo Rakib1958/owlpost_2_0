@@ -469,6 +469,7 @@ public class LoginController implements Initializable {
             showAlert("father", "No such wizard!", "Check your credentials again.");
         });
 
+
         new Thread(loginTask).start();
     }
 

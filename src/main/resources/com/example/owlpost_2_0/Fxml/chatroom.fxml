@@ -53,6 +53,11 @@
                            <Cursor fx:constant="HAND" />
                        </cursor>
                    </Button>
+                  <Button fx:id="geminiBtn" layoutX="14.0" layoutY="698.0" mnemonicParsing="false" styleClass="sending-btn" text="🐋" textFill="WHITE">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
                </children></Pane>
                 <Pane prefHeight="200.0" prefWidth="200.0" visible="false" />
                 <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
@@ -99,7 +104,7 @@
                                 </HBox>
                             </children>
                         </Pane>
-                        <HBox prefHeight="57.0" prefWidth="607.0" spacing="10.0">
+                        <HBox prefHeight="57.0" prefWidth="607.0">
                             <children>
                                 <Button fx:id="sendImg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="26.0" prefWidth="54.0" styleClass="sending-btn" text="📷" textFill="WHITE">
                                     <font>
@@ -126,26 +131,120 @@
                                         <Font size="20.0" />
                                     </font>
                                 </Button>
+                        <Button fx:id="voiceToText" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="🔉" textFill="WHITE">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor></Button>
                             </children>
-                            <padding>
-                                <Insets left="10.0" top="10.0" />
-                            </padding>
+                     <padding>
+                        <Insets left="10.0" top="10.0" />
+                     </padding>
                         </HBox>
                     </children></VBox>
             </children>
         </Pane>
-      <Pane prefHeight="744.0" prefWidth="1282.0">
+      <Pane fx:id="emojipane" prefHeight="744.0" prefWidth="1282.0" visible="false">
          <children>
-            <VBox layoutX="724.0" layoutY="417.0" prefHeight="243.0" prefWidth="201.0">
+            <ImageView fitHeight="357.0" fitWidth="247.0" layoutX="687.0" layoutY="303.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../Images/Emojis/emojis.png" />
+               </image>
+            </ImageView>
+            <VBox layoutX="687.0" layoutY="303.0" prefHeight="357.0" prefWidth="247.0" styleClass="sending-btn">
                <children>
-                  <HBox prefHeight="40.0" prefWidth="201.0" />
-                  <HBox layoutX="10.0" layoutY="10.0" prefHeight="40.0" prefWidth="201.0" />
-                  <HBox layoutX="10.0" layoutY="50.0" prefHeight="40.0" prefWidth="201.0" />
-                  <HBox layoutX="10.0" layoutY="90.0" prefHeight="40.0" prefWidth="201.0" />
-                  <HBox layoutX="10.0" layoutY="130.0" prefHeight="40.0" prefWidth="201.0" />
-                  <HBox layoutX="10.0" layoutY="170.0" prefHeight="40.0" prefWidth="201.0" />
+                  <HBox prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="41.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="41.0" styleClass="sending-btn" />
+                        <Button layoutX="51.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="41.0" styleClass="sending-btn" />
+                        <Button layoutX="92.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="41.0" styleClass="sending-btn" />
+                        <Button layoutX="133.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="41.0" styleClass="sending-btn" />
+                        <Button layoutX="174.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="41.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="10.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="50.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="90.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="130.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="170.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="210.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="250.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
+                  <HBox layoutX="10.0" layoutY="290.0" prefHeight="40.0" prefWidth="201.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="52.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="94.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                        <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="42.0" styleClass="sending-btn" />
+                     </children></HBox>
                </children>
             </VBox>
+         </children>
+      </Pane>
+      <Pane fx:id="emojipane_test" prefHeight="744.0" prefWidth="1282.0" visible="false">
+         <children>
+            <ScrollPane fx:id="emojiscroller" hbarPolicy="NEVER" layoutX="682.0" layoutY="393.0" prefHeight="269.0" prefWidth="250.0" vbarPolicy="NEVER">
+               <content>
+                  <VBox fx:id="emojibox" prefHeight="273.0" prefWidth="249.0" />
+               </content>
+            </ScrollPane>
+            <Button fx:id="closeEmojiPicker" layoutX="900.0" layoutY="344.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="39.0" prefWidth="30.0" text="-" />
          </children>
       </Pane>
     </children>

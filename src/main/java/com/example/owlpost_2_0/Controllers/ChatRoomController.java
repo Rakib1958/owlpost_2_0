@@ -6,8 +6,10 @@ import com.example.owlpost_2_0.ChatRoom.GroupMessage;
 import com.example.owlpost_2_0.Client.ChatClient;
 import com.example.owlpost_2_0.Client.Client;
 import com.example.owlpost_2_0.Database.DatabaseHandler;
+import com.example.owlpost_2_0.Gemini.GeminiApiClient;
 import com.example.owlpost_2_0.Resources.Audios;
 import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,17 +24,21 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.net.URL;
-import java.sql.Time;
 import java.time.LocalTime;
 import java.util.*;
+
 import javafx.concurrent.Task;
-import javafx.application.Platform;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -40,6 +46,10 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
+import netscape.javascript.JSObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -73,6 +83,10 @@ public class ChatRoomController implements Initializable {
     private Button audiocall;
     @FXML
     private Button videocall;
+    @FXML
+    private Button closeEmojiPicker;
+    @FXML
+    private Button voiceToText;
 
     @FXML
     private Label userIdLabel;
@@ -92,6 +106,13 @@ public class ChatRoomController implements Initializable {
     private Circle userImageClip;
     @FXML
     private Circle clientImageClip;
+    @FXML
+    private Pane emojipane_test;
+    @FXML
+    private VBox emojibox;
+    @FXML
+    private ScrollPane emojiscroller;
+
     private VBox incomingCallUI;
     private VBox activeCallUI;
     private Label callStatusLabel;
@@ -125,13 +146,15 @@ public class ChatRoomController implements Initializable {
     private String currentMusic;
     private Thread videoSenderThread;
     private Thread videoReceiverThread;
-//    private GroupChatController groupChatController;
+    //    private GroupChatController groupChatController;
     private boolean isGroupChatMode = false;
     private Dialog<GroupChat> createGroupDialog;
     private TextField groupNameField;
     private TextArea groupDescriptionField;
     private ListView<String> availableUsersListView;
     private ListView<String> selectedMembersListView;
+    private WebEngine webEngine;
+    private boolean recording = false;
 
     private void initializeCallUI() {
         if (callOverlay == null) {
@@ -684,8 +707,7 @@ public class ChatRoomController implements Initializable {
         if (isGroupChatMode && getCurrentSelectedGroup() != null) {
             msgField.clear();
             sendGroupMessageFromMainChat(content);
-        }
-        else if (!content.isEmpty() && currentReceiver != null) {
+        } else if (!content.isEmpty() && currentReceiver != null) {
             ChatMessage msg = new ChatMessage(client.getUsername(), currentReceiver, content);
             chatClient.sendMessage(msg);
             msgField.clear();
@@ -767,6 +789,7 @@ public class ChatRoomController implements Initializable {
             }
         }
     }
+
     private void handleIncomingMsg(ChatMessage msg) {
         if (msg.getSender().equals("SYSTEM")) {
             if (msg.getContent().startsWith("USER_ONLINE:") || msg.getContent().startsWith("USER_OFFLINE:")) {
@@ -1010,6 +1033,8 @@ public class ChatRoomController implements Initializable {
         label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
         label.setMaxHeight(Double.MAX_VALUE);
         label.setPadding(new Insets(12));
+        label.setFont(Font.font("Segoe UI Emoji", 12));
+        label.setTextFill(Color.BLACK);
 
         if (msg.getSender().equals(client.getUsername())) {
             label.setStyle("-fx-background-color: #128C7E; " +
@@ -1116,6 +1141,10 @@ public class ChatRoomController implements Initializable {
                 isVideoCall = true;
                 initiateVideoCall();
             }
+        } else if (btn.equals(sendEmoji)) {
+            emojipane_test.setVisible(true);
+        } else if (btn.equals(closeEmojiPicker)) {
+            emojipane_test.setVisible(false);
         }
     }
 
@@ -1150,8 +1179,6 @@ public class ChatRoomController implements Initializable {
         }
         return new Image(url.toExternalForm());
     }
-
-
 
     public void getClient(Client client) {
         this.client = client;
@@ -1905,7 +1932,9 @@ public class ChatRoomController implements Initializable {
             System.err.println("Error sending group message: " + e.getMessage());
         }
     }
+
     private GroupChat currentSelectedGroup = null;
+
     private GroupChat getCurrentSelectedGroup() {
         if (isGroupChatMode && currentSelectedGroup != null) {
             return currentSelectedGroup;
@@ -2139,12 +2168,14 @@ public class ChatRoomController implements Initializable {
         initializeCallUI();
         createOutgoingCallUI();
         setupCreateGroupDialog();
+        loadEmojis();
         msgbox.heightProperty().addListener((obs, oldVal, newVal) -> {
             chatScroll.setVvalue(1.0);
         });
 
         chatScroll.setFitToWidth(true);
         msgbox.prefWidthProperty().bind(chatScroll.widthProperty().subtract(20));
+        msgField.setFont(Font.font("Segoe UI Emoji", 12));
         msgField.setOnAction(e -> {
             try {
                 onSendMessage();
@@ -2152,9 +2183,96 @@ public class ChatRoomController implements Initializable {
                 System.out.println("Error sending message: " + ex.getMessage());
             }
         });
+        loadGeminiApiClient();
+        geminiBtn.setOnAction(event -> {
+            String prompt = msgField.getText();
+            if (prompt == null || prompt.trim().isEmpty()) return;
+
+            new Thread(() -> {
+                try {
+                    String response = geminiApiClient.generateContent(prompt);
+                    JSONObject json = new JSONObject(response);
+
+                    if (json.has("error")) {
+                        JSONObject error = json.getJSONObject("error");
+                        Platform.runLater(() -> geminiResponseArea.setText("API Error: " + error.getString("message")));
+                        return;
+                    }
+
+                    JSONArray candidates = json.getJSONArray("candidates");
+                    if (candidates.length() > 0) {
+                        JSONObject content = candidates.getJSONObject(0).getJSONObject("content");
+                        JSONArray parts = content.getJSONArray("parts");
+                        if (parts.length() > 0) {
+                            String text = parts.getJSONObject(0).getString("text");
+                            Platform.runLater(() -> geminiResponseArea.setText(text));
+                        }
+                    }
+                } catch (Exception e) {
+                    Platform.runLater(() -> geminiResponseArea.setText("Error: " + e.getMessage()));
+                    e.printStackTrace();
+                }
+            }).start();
+        });
+
 //        Audios.playBGM();
 
     }
 
+    String[] emojis = {"😄", "😆", "😂", "😁", "😅", "😉", "🥲", "🙂", "🤗", "🤔", "🫡", "😑", "🫤", "🙃", "🫠", "🤑", "😖", "😞", "😤", "😭", "😢", "🤪", "😠", "🤮", "😇", "🤭", "😈", "💩", "✌️", "️👌", "👍", "👎", "👊", "👏", "🙌", "🫶", "❤", "️💛", "💚", "💙", "🖤", "🤍", "💔", "❣️", "💞", "❤️‍🩹"};
+
+    private void loadEmojis() {
+        emojibox.getChildren().clear(); // Clear previous emojis if reloading
+
+        int index = 0;
+        int columns = 5;
+        int num_of_emojis = emojis.length;
+
+        for (int i = 0; i <= num_of_emojis / columns; i++) {
+            HBox hbox = new HBox(5);
+            hbox.setPadding(new Insets(2));
+
+            for (int j = 0; j < columns && index < num_of_emojis; j++) {
+                String emoji = emojis[index++];
+                Button emojiBtn = new Button(emoji);
+
+                emojiBtn.setStyle("""
+                            -fx-background-color: transparent;
+                            -fx-font-size: 12px;
+                            -fx-cursor: hand;
+                            -fx-font-family: 'Segoe UI Emoji';
+                        """);
+                emojiBtn.setPrefSize(50, 50);
+                emojiBtn.setFocusTraversable(false); // Prevent focus on tab
+                emojiBtn.setFont(Font.font("Segoe UI Emoji"));
+
+                emojiBtn.setOnAction(e -> msgField.appendText(emoji));
+
+                hbox.getChildren().add(emojiBtn);
+            }
+
+            emojibox.getChildren().add(hbox);
+        }
+    }
+
+    @FXML
+    private Button geminiBtn;
+    @FXML
+    private TextArea geminiResponseArea;
+
+
+    private GeminiApiClient geminiApiClient;
+    private void loadGeminiApiClient() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("apikey.txt"))) {
+            String apiKey = reader.readLine();
+            if (apiKey != null && !apiKey.trim().isEmpty()) {
+                geminiApiClient = new GeminiApiClient(apiKey);
+            } else {
+                System.out.println("Gemini API key is missing.");
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to load Gemini API key: " + e.getMessage());
+        }
+    }
 
 }

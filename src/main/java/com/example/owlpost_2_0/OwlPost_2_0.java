@@ -17,6 +17,7 @@ public class OwlPost_2_0 extends Application {
     @Override
     public void start(Stage stage) {
         try {
+            System.out.println("😀");
             Font f = Font.loadFont(getClass().getResourceAsStream("Fonts/HARRYP__.TTF"), 12);
 
             Audios.playAmbience();
