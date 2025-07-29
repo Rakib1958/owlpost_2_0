@@ -3,7 +3,6 @@ package com.example.owlpost_2_0.Client;
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
 import com.example.owlpost_2_0.Database.DatabaseHandler;
 import javafx.application.Platform;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -41,8 +40,9 @@ public class ChatClient {
             try {
                 while (isConnected) {
                     try {
-                        ChatMessage msg = (ChatMessage) in.readObject();
-                        Platform.runLater(() -> messageHandler.accept(msg));
+                        if(in.readObject() instanceof ChatMessage msg) {
+                            Platform.runLater(() -> messageHandler.accept(msg));
+                        }
                     } catch (Exception e) {
                         if (isConnected) {
                             System.out.println("Error reading message: " + e.getMessage());

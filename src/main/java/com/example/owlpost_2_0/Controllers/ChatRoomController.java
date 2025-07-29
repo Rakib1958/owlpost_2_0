@@ -777,6 +777,15 @@ public class ChatRoomController implements Initializable {
                 String username = msg.getContent().substring(msg.getContent().indexOf(":") + 1);
                 Platform.runLater(() -> updateSpecificUserStatus(username, msg.getContent().startsWith("USER_ONLINE:")));
             }
+            else if (msg.getContent().startsWith("NEW_USER_SIGNUP:")) {
+                String newUsername = msg.getContent().substring("NEW_USER_SIGNUP:".length());
+                Platform.runLater(() -> {
+                    loadFriendsAsync();
+                });
+            } else if (msg.getContent().startsWith("GROUP_INVITATION:")) {
+                String groupId = msg.getContent().substring("GROUP_INVITATION:".length());
+                Platform.runLater(() -> handleGroupInvitation(groupId));
+            }
             return;
         }
         if (msg.getContent().equals("AUDIO_CALL_INITIATED")) {
@@ -840,15 +849,7 @@ public class ChatRoomController implements Initializable {
         }
 
         if (msg.getReceiver().startsWith("GROUP:")) {
-            String groupId = msg.getReceiver().substring(6);
-            if (!msg.getSender().equals(client.getUsername())) {
-                GroupMessage groupMsg = new GroupMessage(groupId, msg.getSender(), msg.getContent());
-                if (isGroupChatMode &&
-                        getCurrentSelectedGroup() != null &&
-                        getCurrentSelectedGroup().getGroupId().equals(groupId)) {
-                    Platform.runLater(() -> showGroupMessageInMainChat(groupMsg));
-                }
-            }
+            handleGroupMessage(msg);
             return;
         }
 
@@ -864,12 +865,88 @@ public class ChatRoomController implements Initializable {
 
     }
 
+    private void handleGroupInvitation(String groupId) {
+        System.out.println("Handling group invitation for group ID: " + groupId);
+
+        Task<GroupChat> loadGroupTask = new Task<GroupChat>() {
+            @Override
+            protected GroupChat call() throws Exception {
+                boolean joined = DatabaseHandler.getInstance().addMemberToGroup(groupId, client.getUsername());
+                if (!joined) {
+                    System.err.println("Failed to join group: " + groupId);
+                    return null;
+                }
+                return DatabaseHandler.getInstance().getGroupById(groupId);
+            }
+        };
+
+        loadGroupTask.setOnSucceeded(e -> {
+            GroupChat group = loadGroupTask.getValue();
+            if (group != null) {
+                Platform.runLater(() -> {
+                    System.out.println("Successfully joined group: " + group.getGroupName());
+                    try {
+                        ChatMessage registerMsg = new ChatMessage(client.getUsername(),
+                                "GROUP:" + groupId, "JOIN_GROUP");
+                        chatClient.sendMessage(registerMsg);
+                        System.out.println("Registered for group messages: " + group.getGroupName());
+                    } catch (Exception ex) {
+                        System.err.println("Error registering for group messages: " + ex.getMessage());
+                    }
+                    loadFriendsAsync();
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Group Invitation");
+                    alert.setHeaderText("You've been added to a group!");
+                    alert.setContentText("You have been added to the group: " + group.getGroupName());
+                    ButtonType switchToGroupButton = new ButtonType("Open Group");
+                    ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+                    alert.getButtonTypes().setAll(switchToGroupButton, okButton);
+
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.isPresent() && result.get() == switchToGroupButton) {
+                        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                            HBox groupCard = findGroupCardByName(group.getGroupName());
+                            if (groupCard != null) {
+                                switchToGroupChat(group);
+                                updateCardSelection(groupCard);
+                            }
+                        }));
+                        timeline.play();
+                    }
+                });
+            } else {
+                Platform.runLater(() -> {
+                    showAlert("Error", "Failed to join the group. Please try again.");
+                });
+            }
+        });
+
+        loadGroupTask.setOnFailed(e -> {
+            System.err.println("Failed to handle group invitation: " + loadGroupTask.getException().getMessage());
+            Platform.runLater(() -> {
+                showAlert("Error", "Failed to join the group: " + loadGroupTask.getException().getMessage());
+            });
+        });
+
+        new Thread(loadGroupTask).start();
+    }
+
+
+    private void handleDatabaseError(String operation, Exception e) {
+        System.err.println("Database error during " + operation + ": " + e.getMessage());
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Database Error");
+            alert.setHeaderText("An error occurred");
+            alert.setContentText("Failed to " + operation + ". Please try again.");
+            alert.showAndWait();
+        });
+    }
+
     @FXML
     private void showGroupInfo(ActionEvent event) {
         GroupChat currentGroup = getCurrentSelectedGroup();
         if (currentGroup == null) return;
-
-        // Create dialog to show group info, members, etc.
         Dialog<Void> infoDialog = new Dialog<>();
         infoDialog.setTitle("Group Information");
         infoDialog.setHeaderText(currentGroup.getGroupName());
@@ -879,8 +956,6 @@ public class ChatRoomController implements Initializable {
 
         Label membersLabel = new Label("Members (" + currentGroup.getMemberCount() + "):");
         ListView<String> membersList = new ListView<>();
-
-        // Load and display members
         Task<List<String>> loadMembersTask = new Task<List<String>>() {
             @Override
             protected List<String> call() throws Exception {
@@ -898,6 +973,151 @@ public class ChatRoomController implements Initializable {
         infoDialog.getDialogPane().setContent(content);
         infoDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         infoDialog.showAndWait();
+    }
+
+    private void handleGroupMessage(ChatMessage msg) {
+        String groupId = msg.getReceiver().substring(6);
+        if (msg.getContent().equals("JOIN_GROUP")) {
+            if (!msg.getSender().equals(client.getUsername())) {
+                Platform.runLater(() -> {
+                    Task<Boolean> checkMembershipTask = new Task<Boolean>() {
+                        @Override
+                        protected Boolean call() throws Exception {
+                            List<String> members = DatabaseHandler.getInstance().loadGroupMembers(groupId);
+                            return members.contains(client.getUsername());
+                        }
+                    };
+
+                    checkMembershipTask.setOnSucceeded(e -> {
+                        if (checkMembershipTask.getValue()) {
+                            loadGroupsForFriendsList();
+                            showJoinGroupNotification(groupId);
+                        }
+                    });
+
+                    new Thread(checkMembershipTask).start();
+                });
+            }
+            return;
+        }
+        if (msg.getContent().startsWith("MEMBER_JOINED:") || msg.getContent().startsWith("MEMBER_LEFT:")) {
+            handleGroupNotification(msg, groupId);
+            return;
+        }
+
+        if (!msg.getSender().equals(client.getUsername())) {
+            GroupMessage groupMsg = new GroupMessage(groupId, msg.getSender(), msg.getContent());
+            if (msg.isFile()) {
+                groupMsg = new GroupMessage(groupId, msg.getSender(), msg.getFileName(), msg.getFileData());
+            }
+            if (isGroupChatMode &&
+                    getCurrentSelectedGroup() != null &&
+                    getCurrentSelectedGroup().getGroupId().equals(groupId)) {
+                GroupMessage finalGroupMsg = groupMsg;
+                Platform.runLater(() -> showGroupMessageInMainChat(finalGroupMsg));
+            }
+            DatabaseHandler.getInstance().saveGroupMessageAsync(groupMsg, null);
+        }
+    }
+
+    private void showJoinGroupNotification(String groupId) {
+        Task<GroupChat> loadGroupTask = new Task<GroupChat>() {
+            @Override
+            protected GroupChat call() throws Exception {
+                List<GroupChat> userGroups = DatabaseHandler.getInstance().loadUserGroups(client.getUsername());
+                return userGroups.stream()
+                        .filter(group -> group.getGroupId().equals(groupId))
+                        .findFirst()
+                        .orElse(null);
+            }
+        };
+
+        loadGroupTask.setOnSucceeded(e -> {
+            GroupChat group = loadGroupTask.getValue();
+            if (group != null) {
+                Platform.runLater(() -> {
+                    HBox messageBox = new HBox();
+                    messageBox.setPadding(new Insets(5));
+                    messageBox.setAlignment(Pos.CENTER);
+
+                    Button joinGroupBtn = new Button("JOIN_GROUP");
+                    joinGroupBtn.setStyle("-fx-background-color: #128C7E; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-font-size: 14px; " +
+                            "-fx-padding: 12 20; " +
+                            "-fx-background-radius: 20; " +
+                            "-fx-cursor: hand; " +
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 2, 2);");
+
+                    Label timeLabel = new Label(java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(new Date()));
+                    timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 5 0 0 0;");
+
+                    VBox buttonContainer = new VBox(5);
+                    buttonContainer.setAlignment(Pos.CENTER);
+                    buttonContainer.getChildren().addAll(joinGroupBtn, timeLabel);
+
+                    joinGroupBtn.setOnAction(event -> {
+                        switchToGroupChat(group);
+                        updateCardSelection(findGroupCardByName(group.getGroupName()));
+                    });
+
+                    messageBox.getChildren().add(buttonContainer);
+                    msgbox.getChildren().add(messageBox);
+                    chatScroll.setVvalue(1.0);
+                });
+            }
+        });
+
+        new Thread(loadGroupTask).start();
+    }
+
+    private HBox findGroupCardByName(String groupName) {
+        for (Node node : friendslist.getChildren()) {
+            if (node instanceof HBox) {
+                HBox card = (HBox) node;
+                if (card.getChildren().size() >= 2) {
+                    VBox groupInfo = (VBox) card.getChildren().get(1);
+                    if (groupInfo.getChildren().size() >= 1) {
+                        Label nameLabel = (Label) groupInfo.getChildren().get(0);
+                        if (nameLabel.getText().equals(groupName)) {
+                            return card;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private void handleGroupNotification(ChatMessage msg, String groupId) {
+        if (msg.getSender().equals(client.getUsername())) {
+            return;
+        }
+
+        Platform.runLater(() -> {
+            GroupMessage systemMsg;
+            if (msg.getContent().startsWith("MEMBER_JOINED:")) {
+                String addedMembers = msg.getContent().substring("MEMBER_JOINED:".length());
+                systemMsg = new GroupMessage(groupId,
+                        msg.getSender() + " added " + addedMembers + " to the group",
+                        GroupMessage.MessageType.MEMBER_JOINED);
+            } else if (msg.getContent().startsWith("MEMBER_LEFT:")) {
+                String leftMember = msg.getContent().substring("MEMBER_LEFT:".length());
+                systemMsg = new GroupMessage(groupId,
+                        leftMember + " left the group",
+                        GroupMessage.MessageType.MEMBER_LEFT);
+            } else {
+                return;
+            }
+            DatabaseHandler.getInstance().saveGroupMessageAsync(systemMsg, null);
+            if (isGroupChatMode &&
+                    getCurrentSelectedGroup() != null &&
+                    getCurrentSelectedGroup().getGroupId().equals(groupId)) {
+                showGroupMessageInMainChat(systemMsg);
+            }
+            loadFriendsAsync();
+        });
     }
 
     @FXML
@@ -1263,13 +1483,36 @@ public class ChatRoomController implements Initializable {
         loadGroupsTask.setOnSucceeded(e -> {
             List<GroupChat> groups = loadGroupsTask.getValue();
             Platform.runLater(() -> {
+                List<Node> toRemove = new ArrayList<>();
+                boolean foundSeparator = false;
+
+                for (Node node : friendslist.getChildren()) {
+                    if (node instanceof Separator) {
+                        foundSeparator = true;
+                        continue;
+                    }
+                    if (foundSeparator && !(node instanceof Label && ((Label) node).getText().equals("Groups"))) {
+                        toRemove.add(node);
+                    }
+                }
+                friendslist.getChildren().removeAll(toRemove);
+                String selectedGroupName = null;
+                if (isGroupChatMode && currentSelectedGroup != null) {
+                    selectedGroupName = currentSelectedGroup.getGroupName();
+                }
+
                 for (GroupChat group : groups) {
                     HBox groupCard = createGroupCard(group);
                     friendslist.getChildren().add(groupCard);
+                    if (selectedGroupName != null && group.getGroupName().equals(selectedGroupName)) {
+                        updateCardSelection(groupCard);
+                    }
                 }
             });
         });
-
+        loadGroupsTask.setOnFailed(e -> {
+            System.err.println("Failed to load groups: " + loadGroupsTask.getException().getMessage());
+        });
         new Thread(loadGroupsTask).start();
     }
 
@@ -1434,14 +1677,14 @@ public class ChatRoomController implements Initializable {
         bubble.setPadding(new Insets(12));
         bubble.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
 
-        if (!msg.getSenderUsername().equals(client.getUsername())) {
-            Label senderInBubble = new Label(msg.getSenderUsername());
-            senderInBubble.setStyle("-fx-text-fill: #2980b9; " +
-                    "-fx-font-size: 10px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 0 0 3 0;");
-            bubble.getChildren().add(senderInBubble);
-        }
+//        if (!msg.getSenderUsername().equals(client.getUsername())) {
+//            Label senderInBubble = new Label(msg.getSenderUsername());
+//            senderInBubble.setStyle("-fx-text-fill: #2980b9; " +
+//                    "-fx-font-size: 10px; " +
+//                    "-fx-font-weight: bold; " +
+//                    "-fx-padding: 0 0 3 0;");
+//            bubble.getChildren().add(senderInBubble);
+//        }
 
         Label contentLabel = new Label(msg.getContent());
         contentLabel.setWrapText(true);
@@ -1839,9 +2082,35 @@ public class ChatRoomController implements Initializable {
 
         loadFriendsTask.setOnSucceeded(e -> {
             List<Client> allClients = loadFriendsTask.getValue();
-            Platform.runLater(() -> loadFriends(allClients));
-        });
+            Platform.runLater(() -> {
+                String selectedUser = currentReceiver;
+                GroupChat selectedGroup = currentSelectedGroup;
 
+                loadFriends(allClients);
+                if (selectedGroup != null && isGroupChatMode) {
+                    HBox groupCard = findGroupCardByName(selectedGroup.getGroupName());
+                    if (groupCard != null) {
+                        updateCardSelection(groupCard);
+                    }
+                } else if (selectedUser != null && !isGroupChatMode) {
+                    for (Node node : friendslist.getChildren()) {
+                        if (node instanceof HBox) {
+                            HBox card = (HBox) node;
+                            if (card.getChildren().size() >= 2) {
+                                VBox userInfo = (VBox) card.getChildren().get(1);
+                                if (userInfo.getChildren().size() >= 1) {
+                                    Label nameLabel = (Label) userInfo.getChildren().get(0);
+                                    if (nameLabel.getText().equals(selectedUser)) {
+                                        updateFriendCardStyle(card);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
         loadFriendsTask.setOnFailed(e -> {
             System.out.println("Failed to load friends: " + loadFriendsTask.getException().getMessage());
             Platform.runLater(() -> {
@@ -1850,7 +2119,6 @@ public class ChatRoomController implements Initializable {
                 friendslist.getChildren().add(errorLabel);
             });
         });
-
         new Thread(loadFriendsTask).start();
     }
 
@@ -2084,28 +2352,67 @@ public class ChatRoomController implements Initializable {
         Task<Boolean> createGroupTask = new Task<Boolean>() {
             @Override
             protected Boolean call() throws Exception {
-                return DatabaseHandler.getInstance().createGroup(groupChat);
+                boolean success = DatabaseHandler.getInstance().createGroup(groupChat);
+                if (success) {
+                    // First register this client to receive group messages
+                    try {
+                        ChatMessage registerMsg = new ChatMessage(client.getUsername(),
+                                "GROUP:" + groupChat.getGroupId(), "JOIN_GROUP");
+                        chatClient.sendMessage(registerMsg);
+                        System.out.println("Registered creator for group: " + groupChat.getGroupName());
+                    } catch (Exception e) {
+                        System.err.println("Error registering creator in group: " + e.getMessage());
+                    }
+
+                    // Then send invitations to other members (NOT including creator)
+                    for (String memberUsername : groupChat.getMembers()) {
+                        if (!memberUsername.equals(client.getUsername())) {
+                            try {
+                                ChatMessage inviteMsg = new ChatMessage(client.getUsername(),
+                                        memberUsername, "GROUP_INVITATION:" + groupChat.getGroupId());
+                                chatClient.sendMessage(inviteMsg);
+                                System.out.println("Sent group invitation to: " + memberUsername);
+                            } catch (Exception e) {
+                                System.err.println("Error sending group invitation to " + memberUsername + ": " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+                return success;
             }
         };
 
         createGroupTask.setOnSucceeded(e -> {
             if (createGroupTask.getValue()) {
-                System.out.println("Group created successfully: " + groupChat.getGroupName());
+                Platform.runLater(() -> {
+                    System.out.println("Group created successfully: " + groupChat.getGroupName());
+                    GroupMessage systemMsg = new GroupMessage(groupChat.getGroupId(),
+                            "Group '" + groupChat.getGroupName() + "' created by " + client.getUsername(),
+                            GroupMessage.MessageType.GROUP_CREATED);
+                    DatabaseHandler.getInstance().saveGroupMessageAsync(systemMsg, null);
+                    loadFriendsAsync();
+                    Platform.runLater(() -> {
+                        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                            HBox groupCard = findGroupCardByName(groupChat.getGroupName());
+                            if (groupCard != null) {
+                                switchToGroupChat(groupChat);
+                                updateCardSelection(groupCard);
+                            }
+                        }));
+                        timeline.play();
+                    });
 
-                GroupMessage systemMsg = new GroupMessage(groupChat.getGroupId(),
-                        "Group '" + groupChat.getGroupName() + "' created by " + client.getUsername(),
-                        GroupMessage.MessageType.GROUP_CREATED);
-                DatabaseHandler.getInstance().saveGroupMessageAsync(systemMsg, null);
-
-                loadFriendsAsync(); // Refresh the friends/groups list
+                    showAlert("Success", "Group created successfully!");
+                });
             } else {
-                showAlert("Error", "Failed to create group. Please try again.");
+                Platform.runLater(() -> showAlert("Error", "Failed to create group. Please try again."));
             }
         });
-
         createGroupTask.setOnFailed(e -> {
-            System.out.println("Failed to create group: " + createGroupTask.getException().getMessage());
-            showAlert("Error", "Failed to create group: " + createGroupTask.getException().getMessage());
+            Platform.runLater(() -> {
+                System.out.println("Failed to create group: " + createGroupTask.getException().getMessage());
+                showAlert("Error", "Failed to create group: " + createGroupTask.getException().getMessage());
+            });
         });
 
         new Thread(createGroupTask).start();
@@ -2191,7 +2498,113 @@ public class ChatRoomController implements Initializable {
         Dialog<List<String>> addMemberDialog = new Dialog<>();
         addMemberDialog.setTitle("Add Members");
         addMemberDialog.setHeaderText("Add members to " + currentGroup.getGroupName());
-        // ... implementation details
+
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+
+        ListView<String> availableUsersListView = new ListView<>();
+        availableUsersListView.setPrefHeight(200);
+        availableUsersListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        Label instructionLabel = new Label("Select users to add to the group:");
+        content.getChildren().addAll(instructionLabel, availableUsersListView);
+
+        addMemberDialog.getDialogPane().setContent(content);
+
+        ButtonType addButtonType = new ButtonType("Add Selected", ButtonBar.ButtonData.OK_DONE);
+        addMemberDialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+        Task<List<String>> loadAvailableUsersTask = new Task<List<String>>() {
+            @Override
+            protected List<String> call() throws Exception {
+                List<Client> allUsers = DatabaseHandler.getInstance().loadUsers();
+                List<String> groupMembers = DatabaseHandler.getInstance().loadGroupMembers(currentGroup.getGroupId());
+
+                return allUsers.stream()
+                        .map(Client::getUsername)
+                        .filter(username -> !username.equals(client.getUsername()))
+                        .filter(username -> !groupMembers.contains(username))
+                        .collect(java.util.stream.Collectors.toList());
+            }
+        };
+
+        loadAvailableUsersTask.setOnSucceeded(e -> {
+            Platform.runLater(() -> {
+                availableUsersListView.getItems().addAll(loadAvailableUsersTask.getValue());
+
+                addMemberDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == addButtonType) {
+                        return new ArrayList<>(availableUsersListView.getSelectionModel().getSelectedItems());
+                    }
+                    return null;
+                });
+
+                Optional<List<String>> result = addMemberDialog.showAndWait();
+                result.ifPresent(selectedUsers -> addUsersToGroup(currentGroup.getGroupId(), selectedUsers));
+            });
+        });
+
+        new Thread(loadAvailableUsersTask).start();
+    }
+
+    private void addUsersToGroup(String groupId, List<String> usernames) {
+        if (usernames.isEmpty()) return;
+
+        Task<Boolean> addUsersTask = new Task<Boolean>() {
+            @Override
+            protected Boolean call() throws Exception {
+                boolean success = true;
+                for (String username : usernames) {
+                    boolean added = DatabaseHandler.getInstance().addMemberToGroup(groupId, username);
+                    if (!added) {
+                        success = false;
+                        System.err.println("Failed to add user: " + username);
+                    }
+                }
+                return success;
+            }
+        };
+
+        addUsersTask.setOnSucceeded(e -> {
+            if (addUsersTask.getValue()) {
+                Platform.runLater(() -> {
+                    String memberNames = String.join(", ", usernames);
+                    GroupMessage systemMsg = new GroupMessage(groupId,
+                            client.getUsername() + " added " + memberNames + " to the group",
+                            GroupMessage.MessageType.MEMBER_JOINED);
+                    DatabaseHandler.getInstance().saveGroupMessageAsync(systemMsg, null);
+                    if (isGroupChatMode && getCurrentSelectedGroup() != null &&
+                            getCurrentSelectedGroup().getGroupId().equals(groupId)) {
+                        showGroupMessageInMainChat(systemMsg);
+                    }
+
+                    try {
+                        ChatMessage notificationMsg = new ChatMessage(client.getUsername(),
+                                "GROUP:" + groupId, "MEMBER_JOINED:" + memberNames);
+                        chatClient.sendMessage(notificationMsg);
+                        for (String username : usernames) {
+                            ChatMessage inviteMsg = new ChatMessage(client.getUsername(),
+                                    username, "GROUP_INVITATION:" + groupId);
+                            chatClient.sendMessage(inviteMsg);
+                            System.out.println("Sent invitation to: " + username + " for group: " + groupId);
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("Error sending member added notification: " + ex.getMessage());
+                    }
+                    loadFriendsAsync();
+                    showAlert("Success", "Members added successfully!");
+                });
+            } else {
+                Platform.runLater(() -> showAlert("Error", "Failed to add some members. Please try again."));
+            }
+        });
+
+        addUsersTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                System.err.println("Error adding members: " + addUsersTask.getException().getMessage());
+                showAlert("Error", "Failed to add members: " + addUsersTask.getException().getMessage());
+            });
+        });
+        new Thread(addUsersTask).start();
     }
 
     @FXML
@@ -2202,7 +2615,7 @@ public class ChatRoomController implements Initializable {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Leave Group");
         confirmDialog.setHeaderText("Leave " + currentGroup.getGroupName() + "?");
-        confirmDialog.setContentText("You will no longer receive messages from this group.");
+        confirmDialog.setContentText("You will no longer receive messages from this group and cannot rejoin unless added by another member.");
 
         Optional<ButtonType> result = confirmDialog.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -2217,13 +2630,34 @@ public class ChatRoomController implements Initializable {
             leaveTask.setOnSucceeded(e -> {
                 if (leaveTask.getValue()) {
                     Platform.runLater(() -> {
-                        isGroupChatMode = false;
-                        currentSelectedGroup = null;
-                        msgbox.getChildren().clear();
-                        hideGroupButtons();
-                        loadFriendsAsync();
+                        try {
+                            ChatMessage leaveMsg = new ChatMessage(client.getUsername(),
+                                    "GROUP:" + currentGroup.getGroupId(),
+                                    "MEMBER_LEFT:" + client.getUsername());
+                            chatClient.sendMessage(leaveMsg);
+                            isGroupChatMode = false;
+                            currentSelectedGroup = null;
+                            currentReceiver = null;
+                            msgbox.getChildren().clear();
+                            clientIdLabel.setText("Select a chat");
+                            clientImage.setImage(loadDefaultProfileImage());
+                            hideGroupButtons();
+                            loadFriendsAsync();
+
+                            showAlert("Success", "You have left the group successfully.");
+
+                        } catch (Exception ex) {
+                            System.err.println("Error sending leave notification: " + ex.getMessage());
+                        }
                     });
+                } else {
+                    showAlert("Error", "Failed to leave group. Please try again.");
                 }
+            });
+
+            leaveTask.setOnFailed(e -> {
+                System.err.println("Error leaving group: " + leaveTask.getException().getMessage());
+                showAlert("Error", "Failed to leave group: " + leaveTask.getException().getMessage());
             });
 
             new Thread(leaveTask).start();

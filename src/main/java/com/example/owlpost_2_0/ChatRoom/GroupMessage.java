@@ -26,13 +26,11 @@ public class GroupMessage implements Serializable {
         GROUP_CREATED
     }
 
-    // Constructors
     public GroupMessage() {
         this.timestamp = new Date();
         this.messageType = MessageType.TEXT;
     }
 
-    // Text message constructor
     public GroupMessage(String groupId, String senderUsername, String content) {
         this();
         this.groupId = groupId;
@@ -42,7 +40,6 @@ public class GroupMessage implements Serializable {
         this.messageType = MessageType.TEXT;
     }
 
-    // File message constructor
     public GroupMessage(String groupId, String senderUsername, String fileName, byte[] fileData) {
         this();
         this.groupId = groupId;
@@ -52,7 +49,6 @@ public class GroupMessage implements Serializable {
         this.isFile = true;
         this.content = "File: " + fileName;
 
-        // Determine if it's an image or regular file
         if (isImageFile(fileName)) {
             this.messageType = MessageType.IMAGE;
         } else {
@@ -60,7 +56,6 @@ public class GroupMessage implements Serializable {
         }
     }
 
-    // System message constructor
     public GroupMessage(String groupId, String content, MessageType messageType) {
         this();
         this.groupId = groupId;
@@ -70,7 +65,6 @@ public class GroupMessage implements Serializable {
         this.isFile = false;
     }
 
-    // Getters and Setters
     public String getMessageId() { return messageId; }
     public void setMessageId(String messageId) { this.messageId = messageId; }
 
@@ -98,7 +92,6 @@ public class GroupMessage implements Serializable {
     public MessageType getMessageType() { return messageType; }
     public void setMessageType(MessageType messageType) { this.messageType = messageType; }
 
-    // Utility methods
     public boolean isSystemMessage() {
         return "SYSTEM".equals(senderUsername) || messageType == MessageType.SYSTEM;
     }

@@ -90,7 +90,6 @@ public class Server {
     public static void broadcastToGroup(String groupId, ChatMessage msg) {
         Set<String> members = groupMembers.get(groupId);
         if (members == null) {
-            // Load group members from database
             members = DatabaseHandler.getInstance().getGroupMembers(groupId);
             if (members != null) {
                 groupMembers.put(groupId, members);
