@@ -113,6 +113,17 @@ public class ChatRoomController implements Initializable {
     @FXML
     private ScrollPane emojiscroller;
 
+    // Gemini Resources
+    @FXML
+    private Button geminisend;
+    @FXML
+    private TextField geminimsg;
+    @FXML
+    private ScrollPane geminiscrollpane;
+    @FXML
+    private VBox geminibox;
+    private GeminiApiClient apiClient;
+
     private VBox incomingCallUI;
     private VBox activeCallUI;
     private Label callStatusLabel;
@@ -715,6 +726,72 @@ public class ChatRoomController implements Initializable {
             DatabaseHandler.getInstance().saveChatMessageAsync(msg, () -> {
                 System.out.println("Message saved to database");
             });
+        }
+    }
+
+    private void onSendGemini() {
+        String content = geminimsg.getText().trim();
+        System.out.println(content);
+        if (!content.isEmpty()) {
+            System.out.println("Showing in gemini box");
+            showChatWithGemini(content, true);
+            geminimsg.clear();
+            System.out.println("Asking gemini");
+            geminiQuery(content);
+        }
+    }
+
+    private void showChatWithGemini(String content, boolean isClient) {
+        if (isClient){
+            System.out.println("Client");
+            HBox hBox = new HBox();
+            hBox.setPadding(new Insets(3));
+            hBox.setAlignment(Pos.CENTER_RIGHT);
+
+            Label label = new Label(content);
+            label.setWrapText(true);
+            label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
+            label.setMaxHeight(Double.MAX_VALUE);
+            label.setPadding(new Insets(12));
+            label.setFont(Font.font("Segoe UI Emoji", 12));
+            label.setTextFill(Color.BLACK);
+            label.setStyle("-fx-background-color: #128C7E; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
+                    "-fx-padding: 12; " +
+                    "-fx-background-radius: 18; " +
+                    "-fx-border-radius: 18; " +
+                    "-fx-border-color: rgba(255,255,255,0.3); " +
+                    "-fx-border-width: 2;");
+            hBox.getChildren().add(label);
+            geminibox.getChildren().add(hBox);
+            geminiscrollpane.setVvalue(1.0);
+        }else {
+            System.out.println("Gemini");
+            HBox hBox = new HBox();
+            hBox.setPadding(new Insets(3));
+            hBox.setAlignment(Pos.CENTER_LEFT);
+
+            Label label = new Label(content);
+            label.setWrapText(true);
+            label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
+            label.setMaxHeight(Double.MAX_VALUE);
+            label.setPadding(new Insets(12));
+            label.setFont(Font.font("Segoe UI Emoji", 12));
+            label.setTextFill(Color.BLACK);
+            label.setStyle("-fx-background-color: white; " +
+                    "-fx-text-fill: #2c3e50; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 2, 2); " +
+                    "-fx-padding: 12; " +
+                    "-fx-background-radius: 18; " +
+                    "-fx-border-radius: 18; " +
+                    "-fx-border-color: #34495e; " +
+                    "-fx-border-width: 2;");
+            hBox.getChildren().add(label);
+            geminibox.getChildren().add(hBox);
+            geminiscrollpane.setVvalue(1.0);
         }
     }
 
@@ -2172,9 +2249,16 @@ public class ChatRoomController implements Initializable {
         msgbox.heightProperty().addListener((obs, oldVal, newVal) -> {
             chatScroll.setVvalue(1.0);
         });
+        geminibox.heightProperty().addListener((obs, oldVal, newVal) -> {
+            chatScroll.setVvalue(1.0);
+        });
+
+        geminiscrollpane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        geminibox.setStyle("-fx-background-color: transparent; -fx-padding: 10");
 
         chatScroll.setFitToWidth(true);
         msgbox.prefWidthProperty().bind(chatScroll.widthProperty().subtract(20));
+        geminibox.prefWidthProperty().bind(chatScroll.widthProperty().subtract(20));
         msgField.setFont(Font.font("Segoe UI Emoji", 12));
         msgField.setOnAction(e -> {
             try {
@@ -2183,39 +2267,84 @@ public class ChatRoomController implements Initializable {
                 System.out.println("Error sending message: " + ex.getMessage());
             }
         });
-        loadGeminiApiClient();
-        geminiBtn.setOnAction(event -> {
-            String prompt = msgField.getText();
-            if (prompt == null || prompt.trim().isEmpty()) return;
-
-            new Thread(() -> {
-                try {
-                    String response = geminiApiClient.generateContent(prompt);
-                    JSONObject json = new JSONObject(response);
-
-                    if (json.has("error")) {
-                        JSONObject error = json.getJSONObject("error");
-                        Platform.runLater(() -> geminiResponseArea.setText("API Error: " + error.getString("message")));
-                        return;
-                    }
-
-                    JSONArray candidates = json.getJSONArray("candidates");
-                    if (candidates.length() > 0) {
-                        JSONObject content = candidates.getJSONObject(0).getJSONObject("content");
-                        JSONArray parts = content.getJSONArray("parts");
-                        if (parts.length() > 0) {
-                            String text = parts.getJSONObject(0).getString("text");
-                            Platform.runLater(() -> geminiResponseArea.setText(text));
-                        }
-                    }
-                } catch (Exception e) {
-                    Platform.runLater(() -> geminiResponseArea.setText("Error: " + e.getMessage()));
-                    e.printStackTrace();
-                }
-            }).start();
+        geminisend.setOnAction(e -> {
+            try {
+                System.out.println("Sending to gemini");
+                onSendGemini();
+            } catch (Exception ex) {
+                System.out.println("Error sending message: " + ex.getMessage());
+            }
         });
+        startGemini();
 
 //        Audios.playBGM();
+
+    }
+
+    public void startGemini() {
+        String apiKey = "";
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("apikey.txt"));
+            apiKey = reader.readLine();
+            reader.close();
+
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                System.out.println("API key is empty or null");
+                return;
+            }
+
+        } catch (Exception e) {
+            System.out.println("Can't read key: " + e.getMessage());
+            return;
+        }
+
+        this.apiClient = new GeminiApiClient(apiKey);
+
+        System.out.println("Gemini Chat Client Started.");
+    }
+
+    public void geminiQuery(String prompt) {
+        if (prompt.trim().isEmpty()) {
+            System.out.println("Please enter a non-empty prompt.");
+            return;
+        }
+
+        try {
+            System.out.println("Sending request... (please wait)");
+            String response = apiClient.generateContent(prompt);
+            JSONObject jsonResponse = new JSONObject(response);
+
+            if (jsonResponse.has("error")) {
+                JSONObject error = jsonResponse.getJSONObject("error");
+                System.out.println("API Error: " + error.getString("message"));
+                return;
+            }
+
+            JSONArray candidates = jsonResponse.getJSONArray("candidates");
+            if (candidates.length() > 0) {
+                JSONObject candidate = candidates.getJSONObject(0);
+                JSONObject content = candidate.getJSONObject("content");
+                JSONArray parts = content.getJSONArray("parts");
+                if (parts.length() > 0) {
+                    String text = parts.getJSONObject(0).getString("text");
+                    System.out.println("\nResponse: " + text);
+                    showChatWithGemini(text, false);
+                }
+            } else {
+                System.out.println("No response generated.");
+            }
+
+        } catch (java.io.IOException e) {
+            System.out.println("Network/API Error: " + e.getMessage());
+            if (e.getMessage().contains("429")) {
+                System.out.println("You're being rate limited. Please wait a few minutes before trying again.");
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Request was interrupted: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+        }
 
     }
 
@@ -2255,24 +2384,5 @@ public class ChatRoomController implements Initializable {
         }
     }
 
-    @FXML
-    private Button geminiBtn;
-    @FXML
-    private TextArea geminiResponseArea;
-
-
-    private GeminiApiClient geminiApiClient;
-    private void loadGeminiApiClient() {
-        try (BufferedReader reader = new BufferedReader(new FileReader("apikey.txt"))) {
-            String apiKey = reader.readLine();
-            if (apiKey != null && !apiKey.trim().isEmpty()) {
-                geminiApiClient = new GeminiApiClient(apiKey);
-            } else {
-                System.out.println("Gemini API key is missing.");
-            }
-        } catch (Exception e) {
-            System.out.println("Failed to load Gemini API key: " + e.getMessage());
-        }
-    }
 
 }
