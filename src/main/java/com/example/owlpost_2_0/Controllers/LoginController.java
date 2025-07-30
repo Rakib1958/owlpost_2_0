@@ -16,6 +16,8 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -143,7 +145,7 @@ public class LoginController implements Initializable {
             "\"Wit beyond measure is man's greatest treasure... RAVENCLAW!\"",
             "\"Ambitious and cunning, you'll achieve great things... SLYTHERIN!\""
     };
-    String houses[] = {"Gryffindor", "Slytherine", "Hufflepuff", "Ravenclaw"};
+    String houses[] = {"Gryffindor", "Slytherin", "Hufflepuff", "Ravenclaw"};
     private int resetNum;
 
 
@@ -336,7 +338,7 @@ public class LoginController implements Initializable {
         File selectedFile = fileChooser.showOpenDialog(selectDP.getScene().getWindow());
         if (selectedFile != null) {
             selectedDP = selectedFile;
-            profilePic.setImage(new Image(selectedFile.toURI().toString()));
+            profilePic.setImage(resizeImage(new Image(selectedFile.toURI().toString()), 90, 101));
             profilePicFrame.setVisible(true);
             profilePic.setVisible(true);
         }
@@ -529,7 +531,8 @@ public class LoginController implements Initializable {
 
             if (houseImage != null && !houseImage.isError()) {
                 System.out.println("Successfully loaded house image from: " + successfulPath);
-                HouseSelected.setImage(houseImage);
+                Image resized = resizeImage(houseImage, 120, 134);
+                HouseSelected.setImage(resized);
                 HouseSelected.setVisible(true);
 //                if (Animations.class.getMethod("spinImage", javafx.scene.image.ImageView.class) != null) {
 //                    Animations.spinImage(HouseSelected);
@@ -580,7 +583,8 @@ public class LoginController implements Initializable {
 
             if (patronusImage != null && !patronusImage.isError()) {
                 System.out.println("Successfully loaded patronus image from: " + successfulPath);
-                patronus.setImage(patronusImage);
+                Image resized = resizeImage(patronusImage, 108, 120);
+                patronus.setImage(resized);
                 patronus.setVisible(true);
                 patronus_frame.setVisible(true);
             } else {
@@ -640,9 +644,9 @@ public class LoginController implements Initializable {
         dbHandler = DatabaseHandler.getInstance();
 
         Animations.leftRight((signupPane));
-//        Animations.leftRight((loginPane));
-//        Animations.leftRight((sortingPane));
-//        Animations.leftRight((recoveryPane));
+        Animations.leftRight((loginPane));
+        Animations.leftRight((sortingPane));
+        Animations.leftRight((recoveryPane));
     }
 //    public static void loop(Label label, String fullText, Duration delayPerChar, Duration pauseAfterFullText) {
 //        label.setText("");
@@ -678,5 +682,11 @@ public class LoginController implements Initializable {
 //            }
 //        });
 //    }
+public static Image resizeImage(Image input, int targetWidth, int targetHeight) {
+    Canvas canvas = new Canvas(targetWidth, targetHeight);
+    GraphicsContext gc = canvas.getGraphicsContext2D();
+    gc.drawImage(input, 0, 0, targetWidth, targetHeight);
+    return canvas.snapshot(null, null);
 
+}
 }
