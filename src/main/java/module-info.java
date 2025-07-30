@@ -19,6 +19,7 @@ module com.example.owlpost_2_0 {
     requires javafx.media;
     requires com.google.protobuf;
     requires jdk.jsobject;
+    requires assemblyai.java;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;

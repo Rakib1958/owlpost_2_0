@@ -72,7 +72,11 @@
             <artifactId>okhttp</artifactId>
             <version>4.10.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.assemblyai</groupId>
+            <artifactId>assemblyai-java</artifactId>
+            <version>1.0.1</version>
+        </dependency>
 
         <!-- For JSON processing -->
 
