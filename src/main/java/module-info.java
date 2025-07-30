@@ -17,6 +17,8 @@ module com.example.owlpost_2_0 {
     requires javafx.swing;
     requires org.json;
     requires okhttp3;
+    requires assemblyai.java;
+    requires org.checkerframework.checker.qual;
 
 
     opens com.example.owlpost_2_0 to javafx.fxml;

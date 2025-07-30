@@ -43,7 +43,37 @@
                         <Image url="@../Images/LoginForm/sidebar.gif" />
                     </image>
                 </ImageView>
-                <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;">
+                <Pane fx:id="geminiPane" prefHeight="200.0" prefWidth="200.0" visible="false">
+                    <children>
+                        <ScrollPane fx:id="geminiscrollpane" fitToWidth="true" hbarPolicy="NEVER" layoutY="100.0" prefHeight="569.0" prefWidth="356.0">
+                            <content>
+                                <VBox fx:id="geminibox" prefWidth="617.0" />
+                            </content>
+                        </ScrollPane>
+                        <HBox layoutX="-8.0" layoutY="677.0" prefHeight="57.0" prefWidth="366.0">
+                            <children>
+                                <TextField fx:id="geminimsg" prefHeight="46.0" prefWidth="297.0" promptText="Message" styleClass="text-fields" />
+                                <Button fx:id="geminisend" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="📤" textFill="WHITE">
+                                    <cursor>
+                                        <Cursor fx:constant="HAND" />
+                                    </cursor>
+                                    <font>
+                                        <Font size="20.0" />
+                                    </font>
+                                </Button>
+                            </children>
+                            <padding>
+                                <Insets left="10.0" top="10.0" />
+                            </padding>
+                        </HBox>
+                  <Label layoutX="36.0" layoutY="7.0" text="Gemini" textFill="#f7f1f1">
+                     <font>
+                        <Font name="Papyrus" size="38.0" />
+                     </font>
+                  </Label>
+                    </children>
+                </Pane>
+                <Pane fx:id="infoPane" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;">
                     <children>
                         <ImageView fx:id="userImage1" fitHeight="94.0" fitWidth="99.0" layoutX="129.0" layoutY="75.0">
                             <clip>
@@ -51,13 +81,10 @@
                             </clip>
                         </ImageView>
                         <Button fx:id="changeDOBtn" layoutX="205.0" layoutY="149.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="47.0" style="-fx-background-color: transparent; -fx-text-fill: #c9b037; -fx-background-radius: 30; -fx-font-size: 16px;" text="🖼️" />
-                        <Label layoutX="27.0" layoutY="221.0" text="Wizard Name" textFill="#e6ddd4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" />
-                        <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" textFill="#b4b4b4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" />
-                        <Label layoutX="27.0" layoutY="323.0" text="House Status" textFill="#e6ddd4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" />
-                        <Button fx:id="createGroupBtn" layoutX="36.0" layoutY="29.0"
-                                mnemonicParsing="false" onAction="#createGroup"
-                                prefHeight="35.0" prefWidth="300.0"
-                                styleClass="create-group-btn" text="✨ Summon New Circle" textFill="#c9b037">
+                        <Label layoutX="27.0" layoutY="221.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" text="Wizard Name" textFill="#e6ddd4" />
+                        <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" textFill="#b4b4b4" />
+                        <Label layoutX="27.0" layoutY="323.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" text="House Status" textFill="#e6ddd4" />
+                        <Button fx:id="createGroupBtn" layoutX="36.0" layoutY="29.0" mnemonicParsing="false" onAction="#createGroup" prefHeight="35.0" prefWidth="300.0" styleClass="create-group-btn" text="✨ Summon New Circle" textFill="#c9b037">
                             <font>
                                 <Font name="Cinzel Bold" size="12.0" />
                             </font>
@@ -65,10 +92,12 @@
                                 <Cursor fx:constant="HAND" />
                             </cursor>
                         </Button>
+                  <Button fx:id="geminiBTN" layoutX="14.0" layoutY="705.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="🤖">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
                     </children></Pane>
-                <Pane prefHeight="200.0" prefWidth="200.0" visible="false" />
-                <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
-                <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
             </children>
         </StackPane>
         <Pane layoutX="320.0" prefHeight="728.0" prefWidth="607.0">
@@ -91,7 +120,7 @@
                                                 <Circle fx:id="clientImageClip" centerX="32" centerY="32" radius="32" />
                                             </clip>
                                         </ImageView>
-                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="250.0" text="john_doe" textFill="#e6ddd4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" />
+                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="250.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" text="john_doe" textFill="#e6ddd4" />
                                         <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" text="🗣️" textFill="#b8860b">
                                             <font>
                                                 <Font size="20.0" />
@@ -108,6 +137,14 @@
                                                 <Font size="18.0" />
                                             </font>
                                         </Button>
+                              <Button fx:id="voiceToText" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="43.0" prefWidth="54.0" styleClass="info-btn" text="🔊">
+                                 <cursor>
+                                    <Cursor fx:constant="HAND" />
+                                 </cursor>
+                                 <font>
+                                    <Font size="25.0" />
+                                 </font>
+                              </Button>
                                     </children>
                                 </HBox>
                             </children>
@@ -145,6 +182,16 @@
                             </padding>
                         </HBox>
                     </children></VBox>
+            </children>
+        </Pane>
+        <Pane fx:id="emojipane_test" prefHeight="744.0" prefWidth="1282.0" visible="false">
+            <children>
+                <ScrollPane fx:id="emojiscroller" hbarPolicy="NEVER" layoutX="682.0" layoutY="393.0" prefHeight="269.0" prefWidth="250.0" vbarPolicy="NEVER">
+                    <content>
+                        <VBox fx:id="emojibox" prefHeight="273.0" prefWidth="249.0" />
+                    </content>
+                </ScrollPane>
+                <Button fx:id="closeEmojiPicker" layoutX="900.0" layoutY="344.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="39.0" prefWidth="30.0" text="-" />
             </children>
         </Pane>
     </children>

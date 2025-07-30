@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.util.Scanner;
 
 public class test {
-    public static void main(String[] args) {
+    public void start() {
         String apiKey = "";
         try {
             BufferedReader reader = new BufferedReader(new FileReader("apikey.txt"));
@@ -82,5 +82,9 @@ public class test {
         }
 
         input.close();
+    }
+    public static void main(String[] args) {
+        test t = new test();
+        t.start();
     }
 }

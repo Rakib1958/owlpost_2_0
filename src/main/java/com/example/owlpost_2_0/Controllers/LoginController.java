@@ -5,6 +5,10 @@ import com.example.owlpost_2_0.Database.DatabaseHandler;
 import com.example.owlpost_2_0.Email.EmailService;
 import com.example.owlpost_2_0.Resources.Animations;
 import com.example.owlpost_2_0.Resources.Audios;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -15,7 +19,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -25,6 +32,7 @@ import java.time.LocalDate;
 import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.concurrent.Task;
+import javafx.util.Duration;
 
 public class LoginController implements Initializable {
     // buttons
@@ -64,6 +72,8 @@ public class LoginController implements Initializable {
     private Pane sortingPane;
     @FXML
     private Pane alertpane;
+    @FXML
+    private Pane effectpane;
 
     // labels
     @FXML
@@ -633,5 +643,7 @@ public class LoginController implements Initializable {
         Animations.leftRight((loginPane));
         Animations.leftRight((sortingPane));
         Animations.leftRight((recoveryPane));
+
     }
+
 }
