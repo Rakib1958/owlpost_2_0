@@ -16,7 +16,7 @@
 
 .login-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: #dfd51a;
+    -fx-text-fill: #e3e29a;
 }
 
 .login-btn: hover {

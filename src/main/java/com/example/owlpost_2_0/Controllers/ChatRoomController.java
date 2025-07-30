@@ -17,6 +17,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -1112,6 +1113,7 @@ public class ChatRoomController implements Initializable {
         label.setPadding(new Insets(12));
         label.setFont(Font.font("Segoe UI Emoji", 12));
         label.setTextFill(Color.BLACK);
+        label.setEffect(new Glow(0.8));
 
         if (msg.getSender().equals(client.getUsername())) {
             label.setStyle("-fx-background-color: #128C7E; " +

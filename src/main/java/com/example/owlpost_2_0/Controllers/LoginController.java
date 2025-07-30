@@ -5,6 +5,10 @@ import com.example.owlpost_2_0.Database.DatabaseHandler;
 import com.example.owlpost_2_0.Email.EmailService;
 import com.example.owlpost_2_0.Resources.Animations;
 import com.example.owlpost_2_0.Resources.Audios;
+import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -25,6 +29,7 @@ import java.time.LocalDate;
 import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.concurrent.Task;
+import javafx.util.Duration;
 
 public class LoginController implements Initializable {
     // buttons
@@ -628,11 +633,50 @@ public class LoginController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+//        Platform.runLater(() -> {
+//            loopAll(loginPane.getScene().getRoot(), Duration.millis(150), Duration.seconds(1));
+//        });
+
         dbHandler = DatabaseHandler.getInstance();
 
         Animations.leftRight((signupPane));
-        Animations.leftRight((loginPane));
-        Animations.leftRight((sortingPane));
-        Animations.leftRight((recoveryPane));
+//        Animations.leftRight((loginPane));
+//        Animations.leftRight((sortingPane));
+//        Animations.leftRight((recoveryPane));
     }
+//    public static void loop(Label label, String fullText, Duration delayPerChar, Duration pauseAfterFullText) {
+//        label.setText("");
+//        final int[] index = {0};
+//        Timeline timeline = new Timeline();
+//
+//        KeyFrame frame = new KeyFrame(delayPerChar, e -> {
+//            if (index[0] < fullText.length()) {
+//                label.setText(fullText.substring(0, index[0] + 1));
+//                index[0]++;
+//            } else {
+//                timeline.stop();
+//                PauseTransition pause = new PauseTransition(pauseAfterFullText);
+//                pause.setOnFinished(event -> {
+//                    label.setText("");
+//                    index[0] = 0;
+//                    timeline.playFromStart();
+//                });
+//                pause.play();
+//            }
+//        });
+//
+//        timeline.getKeyFrames().add(frame);
+//        timeline.setCycleCount(Timeline.INDEFINITE);
+//        timeline.play();
+//    }
+//
+//    public static void loopAll(Parent root, Duration delayPerChar, Duration pause) {
+//        root.lookupAll(".label").forEach(node -> {
+//            if (node instanceof Label label) {
+//                String fullText = label.getText();
+//                loop(label, fullText, delayPerChar, pause);
+//            }
+//        });
+//    }
+
 }

@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.Glow?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.Pane?>
@@ -167,23 +168,32 @@
                         <Font name="Harry P" size="25.0" />
                     </font>
                 </TextField>
-                <Button fx:id="loginBtn" layoutX="530.0" layoutY="417.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Enter Hogwarts">
+                <Button fx:id="loginBtn" layoutX="530.0" layoutY="417.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="login-btn" text="Enter Hogwarts" textFill="#e3e29a">
                     <font>
                         <Font name="Harry P" size="40.0" />
                     </font>
                     <cursor>
                         <Cursor fx:constant="HAND" />
                     </cursor>
+               <effect>
+                  <Glow level="1.0" />
+               </effect>
                 </Button>
                 <Hyperlink fx:id="forgotPass" layoutX="22.0" layoutY="658.0" onAction="#handleHyperLink" styleClass="hyper-links" text="Forgot password? ">
                     <font>
                         <Font name="Harry P" size="22.0" />
                     </font>
+               <effect>
+                  <Glow level="1.0" />
+               </effect>
                 </Hyperlink>
                 <Hyperlink fx:id="newUser" layoutX="1125.0" layoutY="650.0" onAction="#handleHyperLink" styleClass="hyper-links" text="Ya newbie ?">
                     <font>
                         <Font name="Harry P" size="28.0" />
                     </font>
+               <effect>
+                  <Glow level="1.0" />
+               </effect>
                 </Hyperlink>
             </children>
         </Pane>
