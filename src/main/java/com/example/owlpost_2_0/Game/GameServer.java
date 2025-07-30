@@ -83,20 +83,14 @@ public class GameServer {
             }
             return;
         }
-
-        // Start game
         String gameId = UUID.randomUUID().toString();
         int gridSize = gameType.equals("3x3") ? 3 : 4;
-
-        // Randomly assign X and O
         boolean requesterIsX = Math.random() < 0.5;
         String requesterSymbol = requesterIsX ? "X" : "O";
         String responderSymbol = requesterIsX ? "O" : "X";
 
         GameSession session = new GameSession(gameId, requester, opponent, gridSize);
         activeSessions.put(gameId, session);
-
-        // Notify both players
         clients.get(requester).sendMessage("GAME_STARTED:" + gameId + ":" + gridSize + ":" +
                 requesterSymbol + ":" + opponent);
         clients.get(responder).sendMessage("GAME_STARTED:" + gameId + ":" + gridSize + ":" +
@@ -110,7 +104,6 @@ public class GameServer {
         if (session == null) return;
 
         if (session.makeMove(row, col, player)) {
-            // Broadcast move to both players
             String symbol = session.getPlayerSymbol(player);
             session.getPlayers().forEach(p -> {
                 if (clients.containsKey(p)) {
@@ -160,8 +153,6 @@ public class GameServer {
 
         System.out.println("Game ended: " + gameId);
     }
-
-    // Inner class for handling individual client connections
     public static class ClientHandler implements Runnable {
         private Socket socket;
         private PrintWriter out;
@@ -253,8 +244,6 @@ public class GameServer {
             }
         }
     }
-
-    // Inner class for game session management
     public static class GameSession {
         private String gameId;
         private String player1;
@@ -271,15 +260,11 @@ public class GameServer {
             this.gridSize = gridSize;
             this.board = new String[gridSize][gridSize];
             this.currentPlayer = "X";
-
-            // Initialize empty board
             for (int i = 0; i < gridSize; i++) {
                 for (int j = 0; j < gridSize; j++) {
                     board[i][j] = "";
                 }
             }
-
-            // Randomly assign symbols
             playerSymbols = new HashMap<>();
             if (Math.random() < 0.5) {
                 playerSymbols.put(player1, "X");
@@ -301,14 +286,11 @@ public class GameServer {
         }
 
         public String checkWinner() {
-            // Check rows
             for (int i = 0; i < gridSize; i++) {
                 if (checkLine(board[i])) {
                     return board[i][0];
                 }
             }
-
-            // Check columns
             for (int j = 0; j < gridSize; j++) {
                 String[] column = new String[gridSize];
                 for (int i = 0; i < gridSize; i++) {
@@ -318,8 +300,6 @@ public class GameServer {
                     return column[0];
                 }
             }
-
-            // Check diagonals
             String[] diagonal1 = new String[gridSize];
             String[] diagonal2 = new String[gridSize];
             for (int i = 0; i < gridSize; i++) {
