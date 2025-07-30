@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.Scanner;
 
 public class recordAudio {
+
     public static void main(String[] args) throws Exception {
         AudioFormat format = new AudioFormat(44100.0f, 16, 1, true, false);
         TargetDataLine microphone = AudioSystem.getTargetDataLine(format);
