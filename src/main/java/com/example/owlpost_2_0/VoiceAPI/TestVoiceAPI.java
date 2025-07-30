@@ -7,8 +7,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 public class TestVoiceAPI {
-    public static void main(String[] args) {
-        String api = "";
+    public static void getKey() {
         try {
             BufferedReader reader = new BufferedReader(new FileReader("assemblyaiAPI.txt"));
             api = reader.readLine();
@@ -16,6 +15,10 @@ public class TestVoiceAPI {
         }catch (Exception e) {
             System.out.println("Can't read key : " + e);
         }
+    }
+    public static String api = "";
+    public static void main(String[] args) {
+        getKey();
         AssemblyAI assemblyAI = AssemblyAI.builder().apiKey(api).build();
 
         Transcript transcript = assemblyAI.transcripts().transcribe("recording.wav");
