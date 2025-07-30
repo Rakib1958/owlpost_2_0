@@ -706,7 +706,6 @@ public class DatabaseHandler {
 
     public boolean deleteGroup(String groupId) {
         try {
-            // Mark group as inactive instead of deleting
             Map<String, Object> updates = new HashMap<>();
             updates.put("is_active", false);
             updates.put("last_activity", new Date());
@@ -817,8 +816,6 @@ public class DatabaseHandler {
         });
     }
 
-// Helper Methods
-
     private GroupChat documentToGroupChat(DocumentSnapshot document) {
         try {
             GroupChat group = new GroupChat();
@@ -833,7 +830,6 @@ public class DatabaseHandler {
             Boolean isActive = document.getBoolean("is_active");
             group.setActive(isActive != null ? isActive : true);
 
-            // Convert members list
             List<String> membersList = (List<String>) document.get("members");
             if (membersList != null) {
                 group.setMembers(new HashSet<>(membersList));

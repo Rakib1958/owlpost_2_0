@@ -13,11 +13,9 @@ public class ChatMessage implements Serializable {
     private byte[] fileData;
     private boolean isFile;
 
-    // default constructor
     public ChatMessage() {
     }
 
-    // message constructor
     public ChatMessage(String sender, String receiver, String content) {
         this.sender = sender;
         this.receiver = receiver;
@@ -25,7 +23,6 @@ public class ChatMessage implements Serializable {
         this.isFile = false;
     }
 
-    // file constructor
     public ChatMessage(String sender, String receiver, String fileName, byte[] fileData) {
         this.sender = sender;
         this.receiver = receiver;
@@ -35,7 +32,6 @@ public class ChatMessage implements Serializable {
         this.content = "File: " + fileName;
     }
 
-    // getters
     public String getSender() {
         return sender;
     }
@@ -64,7 +60,6 @@ public class ChatMessage implements Serializable {
         return isFile ? ("📎" + fileName) : content;
     }
 
-    // setters
     public void setSender(String sender) {
         this.sender = sender;
     }
@@ -89,7 +84,6 @@ public class ChatMessage implements Serializable {
         this.fileData = data;
     }
 
-    // show method
     @Override
     public String toString() {
         return sender + " to " + receiver + " [" + "]: " + content;

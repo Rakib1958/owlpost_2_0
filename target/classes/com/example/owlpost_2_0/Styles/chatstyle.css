@@ -1,49 +1,154 @@
-/* OPTION 1: Background on base pane */
 .slytherin-background {
-
+    -fx-background-color: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
 }
-
-/* Make everything transparent */
 .left-scroll {
-    -fx-background-color: transparent;
+    -fx-background-color: linear-gradient(to right, #0d0d0d, rgba(20, 20, 20, 0.9));
+    -fx-border-color: #2c1810;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
 }
-
 .friends-list {
-    -fx-background-color: transparent;
+    -fx-background-color: linear-gradient(to bottom, rgba(44, 24, 16, 0.8), rgba(26, 15, 8, 0.9));
+    -fx-border-color: #8b4513;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, #000000, 5, 0.4, 0, 3);
 }
-
 .header-user {
-    -fx-background-color: #000000;
-    -fx-text-fill: #ffffff;
+    -fx-background-color: linear-gradient(to bottom, #1a1a2e, #16213e);
+    -fx-text-fill: #e6ddd4;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-font-weight: bold;
+    -fx-border-color: #6b5b73;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, #2d1b69, 6, 0.7, 0, 3);
 }
 
 .anchor {
     -fx-font-size: 18;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-text-fill: #e6ddd4;
+    -fx-font-weight: bold;
 }
 
 .sending-btn {
-    -fx-background-color: transparent;
-    -fx-border-radius: 10;
+    -fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e);
+    -fx-border-color: #6b5b73;
+    -fx-border-width: 2;
+    -fx-border-radius: 25;
+    -fx-background-radius: 25;
+    -fx-text-fill: #c9b037;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #2d1b69, 5, 0.6, 0, 3);
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
 }
 
+.sending-btn:hover {
+    -fx-background-color: linear-gradient(to bottom, #4a3a7a, #2d1b69);
+    -fx-text-fill: #ffd700;
+    -fx-effect: dropshadow(gaussian, #ffd700, 8, 0.8, 0, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
 .send-msg {
-    -fx-border-size: 0.5;
+    -fx-background-color: linear-gradient(to bottom, #0a1a0a, #041204);
+    -fx-text-fill: #7dff7d;
+    -fx-font-weight:bold;
+    -fx-border-color: #1a4d1a;
+    -fx-border-width: 2;
     -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00ff00, 5, 0.5, 0, 2);
 }
-
 .text-fields {
-    -fx-background-color: rgba(180, 180, 180, 0.3);
-    -fx-text-fill: #ffffff;
-    -fx-background-radius: 8;
-    -fx-border-color: transparent transparent white transparent;
-    -fx-border-radius: 8;
+    -fx-background-color: linear-gradient(to bottom, rgba(26, 26, 46, 0.8), rgba(22, 33, 62, 0.9));
+    -fx-text-fill: #e6ddd4;
+    -fx-prompt-text-fill: rgba(230, 221, 212, 0.5);
+    -fx-background-radius: 20;
+    -fx-border-color: #6b5b73;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-font-size: 14px;
+    -fx-effect: innershadow(gaussian, #0f0f23, 4, 0.3, 0, 0);
 }
 
 .text-fields:hover {
-    -fx-background-color: rgba(50, 50, 50, 0.45);
+    -fx-background-color: linear-gradient(to bottom, rgba(35, 35, 55, 0.9), rgba(30, 40, 70, 1.0));
+    -fx-border-color: #8a7ca8;
+    -fx-effect: dropshadow(gaussian, #6b5b73, 3, 0.4, 0, 2);
 }
 
 .text-fields:focused {
-    -fx-border-color: white white white white;
-    -fx-border-radius: 4;
+    -fx-border-color: #c9b037;
+    -fx-border-width: 2;
+    -fx-background-color: linear-gradient(to bottom, rgba(35, 35, 55, 1.0), rgba(30, 40, 70, 1.0));
+    -fx-effect: dropshadow(gaussian, #c9b037, 5, 0.6, 0, 2);
+}
+
+.create-group-btn {
+    -fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e);
+    -fx-border-color: #6b5b73;
+    -fx-border-width: 2;
+    -fx-border-radius: 25;
+    -fx-background-radius: 25;
+    -fx-text-fill: #c9b037;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(gaussian, #2d1b69, 6, 0.7, 0, 4);
+    -fx-cursor: hand;
+}
+
+.create-group-btn:hover {
+    -fx-background-color: linear-gradient(to bottom, #4a3a7a, #2d1b69);
+    -fx-text-fill: #ffd700;
+    -fx-effect: dropshadow(gaussian, #ffd700, 10, 0.9, 0, 5);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+.call-btn {
+    -fx-background-color: linear-gradient(to bottom, #3d2d5d, #2d1b69);
+    -fx-border-color: #6b5b73;
+    -fx-border-width: 2;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-text-fill: #b8860b;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #2d1b69, 4, 0.5, 0, 2);
+    -fx-cursor: hand;
+}
+
+.call-btn:hover {
+    -fx-background-color: linear-gradient(to bottom, #5d4d7d, #3d2d5d);
+    -fx-text-fill: #daa520;
+    -fx-effect: dropshadow(gaussian, #daa520, 6, 0.7, 0, 3);
+}
+
+.info-btn {
+    -fx-background-color: linear-gradient(to bottom, #4a3566, #2d1b69);
+    -fx-border-color: #6b5b73;
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
+    -fx-background-radius: 18;
+    -fx-text-fill: #9370db;
+    -fx-font-family: "Cinzel", "Times New Roman", serif;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #2d1b69, 4, 0.5, 0, 2);
+    -fx-cursor: hand;
+}
+
+.info-btn:hover {
+    -fx-background-color: linear-gradient(to bottom, #6a5586, #4a3566);
+    -fx-text-fill: #ba55d3;
+    -fx-effect: dropshadow(gaussian, #9370db, 6, 0.7, 0, 3);
 }

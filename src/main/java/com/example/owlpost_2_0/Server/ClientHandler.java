@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
@@ -50,14 +51,21 @@ public class ClientHandler implements Runnable {
     private void listenForMsg() {
         while (!socket.isClosed()) {
             try {
-                ChatMessage msg = (ChatMessage) in.readObject();
-                System.out.println("Received message: " + msg);
-                Server.broadcast(msg);
+                if(in.readObject() instanceof ChatMessage msg){
+                    if (msg.getReceiver().startsWith("GROUP:")) {
+                        Server.broadcast(msg);
+                    }
+                    else{
+                        System.out.println("Received message: " + msg);
+                        Server.broadcast(msg);
+                    }
+                }
             }catch (Exception e) {
                 break;
             }
         }
     }
+
 
     public String getUsername() {
         return username;

@@ -106,13 +106,6 @@ public class Server {
         }
     }
 
-    public static void handleGroupMessage(String groupId, String senderUsername, String content) {
-        // Create a special ChatMessage for group communication
-        ChatMessage groupMsg = new ChatMessage(senderUsername, "GROUP:" + groupId, content);
-        broadcastToGroup(groupId, groupMsg);
-    }
-
-
     public static void addUserToGroup(String username, String groupId) {
         groupMembers.computeIfAbsent(groupId, k -> ConcurrentHashMap.newKeySet()).add(username);
     }

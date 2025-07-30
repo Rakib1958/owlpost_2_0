@@ -38,34 +38,34 @@
         </Pane>
         <StackPane layoutX="926.0" prefHeight="720.0" prefWidth="354.0">
             <children>
-            <ImageView fitHeight="744.0" fitWidth="356.0" pickOnBounds="true">
-               <image>
-                  <Image url="@../Images/LoginForm/sidebar.gif" />
-               </image>
-            </ImageView>
+                <ImageView fitHeight="744.0" fitWidth="356.0" pickOnBounds="true">
+                    <image>
+                        <Image url="@../Images/LoginForm/sidebar.gif" />
+                    </image>
+                </ImageView>
                 <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;">
-               <children>
-                  <ImageView fx:id="userImage1" fitHeight="94.0" fitWidth="99.0" layoutX="129.0" layoutY="75.0">
-                     <clip>
-                        <Circle fx:id="userImageClip1" centerX="32" centerY="32" radius="32" />
-                     </clip>
-                  </ImageView>
-                  <Button fx:id="changeDOBtn" layoutX="205.0" layoutY="149.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="47.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-background-radius: 30;" text="📷" />
-                  <Label layoutX="27.0" layoutY="221.0" text="Name" textFill="WHITE" />
-                  <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" textFill="#b4b4b4" />
-                  <Label layoutX="27.0" layoutY="323.0" text="Label" />
-                   <Button fx:id="createGroupBtn" layoutX="36.0" layoutY="29.0"
-                           mnemonicParsing="false" onAction="#createGroup"
-                           prefHeight="35.0" prefWidth="300.0"
-                           styleClass="sending-btn" text="➕ Create New Group" textFill="WHITE">
-                       <font>
-                           <Font name="Arial Bold" size="13.0" />
-                       </font>
-                       <cursor>
-                           <Cursor fx:constant="HAND" />
-                       </cursor>
-                   </Button>
-               </children></Pane>
+                    <children>
+                        <ImageView fx:id="userImage1" fitHeight="94.0" fitWidth="99.0" layoutX="129.0" layoutY="75.0">
+                            <clip>
+                                <Circle fx:id="userImageClip1" centerX="32" centerY="32" radius="32" />
+                            </clip>
+                        </ImageView>
+                        <Button fx:id="changeDOBtn" layoutX="205.0" layoutY="149.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="47.0" style="-fx-background-color: transparent; -fx-text-fill: #c9b037; -fx-background-radius: 30; -fx-font-size: 16px;" text="🖼️" />
+                        <Label layoutX="27.0" layoutY="221.0" text="Wizard Name" textFill="#e6ddd4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" />
+                        <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" textFill="#b4b4b4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" />
+                        <Label layoutX="27.0" layoutY="323.0" text="House Status" textFill="#e6ddd4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" />
+                        <Button fx:id="createGroupBtn" layoutX="36.0" layoutY="29.0"
+                                mnemonicParsing="false" onAction="#createGroup"
+                                prefHeight="35.0" prefWidth="300.0"
+                                styleClass="create-group-btn" text="✨ Summon New Circle" textFill="#c9b037">
+                            <font>
+                                <Font name="Cinzel Bold" size="12.0" />
+                            </font>
+                            <cursor>
+                                <Cursor fx:constant="HAND" />
+                            </cursor>
+                        </Button>
+                    </children></Pane>
                 <Pane prefHeight="200.0" prefWidth="200.0" visible="false" />
                 <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
                 <Pane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" visible="false" />
@@ -91,20 +91,21 @@
                                                 <Circle fx:id="clientImageClip" centerX="32" centerY="32" radius="32" />
                                             </clip>
                                         </ImageView>
-                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="308.0" text="john_doe" textFill="#fffafa" />
-                                        <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="📞" textFill="WHITE">
+                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="250.0" text="john_doe" textFill="#e6ddd4" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" />
+                                        <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" text="🗣️" textFill="#b8860b">
                                             <font>
-                                                <Font size="25.0" />
+                                                <Font size="20.0" />
                                             </font>
                                         </Button>
-                                        <Button fx:id="videocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="📺" textFill="WHITE">
+                                        <Button fx:id="videocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" text="🔮" textFill="#b8860b">
                                             <font>
-                                                <Font size="25.0" />
+                                                <Font size="20.0" />
                                             </font>
                                         </Button>
-                                        <Button fx:id="infobtn" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="🗃️" textFill="WHITE">
+                                        <!-- Game button will be added dynamically here -->
+                                        <Button fx:id="infobtn" mnemonicParsing="false" onAction="#ButtonAction" styleClass="info-btn" text="📜" textFill="#9370db">
                                             <font>
-                                                <Font size="22.0" />
+                                                <Font size="18.0" />
                                             </font>
                                         </Button>
                                     </children>
@@ -113,29 +114,29 @@
                         </Pane>
                         <HBox prefHeight="57.0" prefWidth="607.0" spacing="10.0">
                             <children>
-                                <Button fx:id="sendImg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="26.0" prefWidth="54.0" styleClass="sending-btn" text="📷" textFill="WHITE">
+                                <Button fx:id="sendImg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="📸" textFill="#c9b037">
                                     <font>
-                                        <Font size="23.0" />
+                                        <Font size="18.0" />
                                     </font>
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
                                 </Button>
-                                <TextField fx:id="msgField" prefHeight="46.0" prefWidth="398.0" promptText="Message" styleClass="text-fields" />
-                                <Button fx:id="sendEmoji" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="47.0" styleClass="sending-btn" text="😊" textFill="WHITE">
+                                <TextField fx:id="msgField" prefHeight="46.0" prefWidth="400.0" promptText="Cast your message..." styleClass="text-fields" />
+                                <Button fx:id="sendEmoji" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="😊" textFill="#c9b037">
                                     <font>
-                                        <Font size="19.0" />
+                                        <Font size="18.0" />
                                     </font>
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
                                 </Button>
-                                <Button fx:id="sendMsg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="📤" textFill="WHITE">
+                                <Button fx:id="sendMsg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="send-msg" text="🪶" textFill="#c9b037">
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
                                     <font>
-                                        <Font size="20.0" />
+                                        <Font size="18.0" />
                                     </font>
                                 </Button>
                             </children>

@@ -61,7 +61,6 @@ public class GroupChat {
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
 
-    // Utility methods
     public boolean addMember(String username) {
         if (username != null && !username.trim().isEmpty()) {
             return members.add(username);
@@ -70,7 +69,6 @@ public class GroupChat {
     }
 
     public boolean removeMember(String username) {
-        // Creator cannot be removed
         if (username.equals(creatorUsername)) {
             return false;
         }

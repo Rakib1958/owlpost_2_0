@@ -1,0 +1,204 @@
+/* Dark Theme CSS for Group Creation Dialog */
+
+/* Dialog pane styling */
+.dark-dialog {
+    -fx-background-color: #2b2b2b;
+}
+
+.dark-dialog .dialog-pane {
+    -fx-background-color: #2b2b2b;
+}
+
+.dark-dialog .dialog-pane .header-panel {
+    -fx-background-color: #1e1e1e;
+}
+
+.dark-dialog .dialog-pane .header-panel .label {
+    -fx-text-fill: #ffffff;
+}
+
+/* Grid pane styling */
+.dark-grid {
+    -fx-background-color: #2b2b2b;
+}
+
+/* Label styling */
+.dark-label {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+}
+
+.dark-section-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Segoe UI";
+    -fx-font-weight: bold;
+}
+
+/* Text field styling */
+.dark-text-field {
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #555555;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.dark-text-field:focused {
+    -fx-border-color: #0078d4;
+    -fx-border-width: 2px;
+}
+
+/* Text area styling */
+.dark-text-area {
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #555555;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.dark-text-area:focused {
+    -fx-border-color: #0078d4;
+    -fx-border-width: 2px;
+}
+
+.dark-text-area .content {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-text-area .scroll-pane {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-text-area .scroll-pane .viewport {
+    -fx-background-color: #3c3c3c;
+}
+
+/* List view styling */
+.dark-list-view {
+    -fx-background-color: #3c3c3c;
+    -fx-border-color: #555555;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.dark-list-view .list-cell {
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: transparent;
+}
+
+.dark-list-view .list-cell:selected {
+    -fx-background-color: #0078d4;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-list-view .list-cell:hover {
+    -fx-background-color: #4a4a4a;
+}
+
+.dark-list-view .list-cell:selected:hover {
+    -fx-background-color: #106ebe;
+}
+
+.dark-list-view .scroll-bar:vertical {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-list-view .scroll-bar:horizontal {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-list-view .scroll-bar .thumb {
+    -fx-background-color: #666666;
+    -fx-background-radius: 5px;
+}
+
+.dark-list-view .scroll-bar .thumb:hover {
+    -fx-background-color: #777777;
+}
+
+/* Button styling */
+.dark-button {
+    -fx-background-color: #0078d4;
+    -fx-text-fill: #ffffff;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.dark-button:hover {
+    -fx-background-color: #106ebe;
+}
+
+.dark-button:pressed {
+    -fx-background-color: #005a9e;
+}
+
+.action-button {
+    -fx-padding: 8px 16px;
+}
+
+/* Dialog button styling */
+.dark-dialog-button {
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #555555;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 16px;
+}
+
+.dark-dialog-button:hover {
+    -fx-background-color: #4a4a4a;
+}
+
+.dark-dialog-button-enabled {
+    -fx-background-color: #0078d4;
+    -fx-border-color: #0078d4;
+}
+
+.dark-dialog-button-enabled:hover {
+    -fx-background-color: #106ebe;
+    -fx-border-color: #106ebe;
+}
+
+.dark-dialog-button-disabled {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #666666;
+    -fx-border-color: #444444;
+}
+
+/* Scroll pane styling for text area */
+.dark-text-area .scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-text-area .scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-text-area .scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #666666;
+    -fx-background-radius: 5px;
+}
+
+.dark-text-area .scroll-pane .scroll-bar .thumb:hover {
+    -fx-background-color: #777777;
+}
+
+/* Dialog title styling */
+.dark-dialog .dialog-pane > .header-panel > .graphic-container > .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}

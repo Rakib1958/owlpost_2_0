@@ -1,5 +1,4 @@
 package com.example.owlpost_2_0.Controllers;
-
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
 import com.example.owlpost_2_0.ChatRoom.GroupChat;
 import com.example.owlpost_2_0.ChatRoom.GroupMessage;
@@ -42,6 +41,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
 import java.util.Optional;
 import java.util.UUID;
+import com.example.owlpost_2_0.Game.GameManager;
+import javafx.scene.control.ChoiceDialog;
 
 import static java.nio.file.Files.readAllBytes;
 
@@ -73,7 +74,6 @@ public class ChatRoomController implements Initializable {
     private Button audiocall;
     @FXML
     private Button videocall;
-
     @FXML
     private Label userIdLabel;
     @FXML
@@ -88,6 +88,10 @@ public class ChatRoomController implements Initializable {
     private VBox msgbox;
     @FXML
     private HBox userCard;
+    @FXML
+    private HBox clientCard;
+    @FXML
+    private Button infobtn;
     @FXML
     private Circle userImageClip;
     @FXML
@@ -117,7 +121,6 @@ public class ChatRoomController implements Initializable {
     private String currentReceiver = null;
     private String[] BGs = {"morning", "day", "evening", "night"};
     private Timer BackgroundTimer;
-
     private VBox outgoingCallUI;
     private boolean isOutgoingCall = false;
     private Thread audioThread;
@@ -125,7 +128,6 @@ public class ChatRoomController implements Initializable {
     private String currentMusic;
     private Thread videoSenderThread;
     private Thread videoReceiverThread;
-//    private GroupChatController groupChatController;
     private boolean isGroupChatMode = false;
     private Dialog<GroupChat> createGroupDialog;
     private TextField groupNameField;
@@ -136,7 +138,8 @@ public class ChatRoomController implements Initializable {
     private Button groupInfoBtn;
     private Button addMemberBtn;
     private Button leaveGroupBtn;
-
+    private GameManager gameManager;
+    private Button gameBtn;
     private void initializeCallUI() {
         if (callOverlay == null) {
             callOverlay = new StackPane();
@@ -152,18 +155,19 @@ public class ChatRoomController implements Initializable {
     private void createIncomingCallUI() {
         incomingCallUI = new VBox(20);
         incomingCallUI.setAlignment(Pos.CENTER);
-        incomingCallUI.setStyle("-fx-background-color: rgba(255, 255, 255, 0.95); " +
+        incomingCallUI.setStyle("-fx-background-color: rgba(26, 15, 8, 0.98); " +
                 "-fx-background-radius: 20; " +
                 "-fx-padding: 30; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);");
+                "-fx-border-color: #8b4513; " +
+                "-fx-border-width: 3; " +
+                "-fx-border-radius: 20; " +
+                "-fx-effect: dropshadow(gaussian, #000000, 15, 0.8, 0, 0);");
         incomingCallUI.setMaxWidth(300);
         incomingCallUI.setMaxHeight(400);
 
         callerImageView = new ImageView();
         callerImageView.setFitWidth(100);
         callerImageView.setFitHeight(100);
-        Circle callerClip = new Circle(50);
-
         Label callerNameLabel = new Label("Incoming Call");
         callerNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         callerNameLabel.setTextFill(Color.BLACK);
@@ -639,14 +643,10 @@ public class ChatRoomController implements Initializable {
             isOutgoingCall = true;
             isAudioCall = true;
             isVideoCall = false;
-
             showOutgoingCallUI("Audio Call");
-
             ChatMessage callMsg = new ChatMessage(client.getUsername(), currentReceiver, "AUDIO_CALL_INITIATED");
             chatClient.sendMessage(callMsg);
-
             //Audios.playSound("outgoing_call");
-
         } catch (Exception e) {
             System.err.println("Error initiating audio call: " + e.getMessage());
         }
@@ -702,11 +702,14 @@ public class ChatRoomController implements Initializable {
 
     @FXML
     private void onSendFile() {
+        if(isGroupChatMode){
+            sendGroupFile();
+            return;
+        }
         if (chatClient == null) {
             System.err.println("ChatClient is not initialized. Cannot send message.");
             return;
         }
-
         if (client == null) {
             System.err.println("Client is not initialized. Cannot send message.");
             return;
@@ -847,22 +850,15 @@ public class ChatRoomController implements Initializable {
             }
             return;
         }
-
         if (msg.getReceiver().startsWith("GROUP:")) {
             handleGroupMessage(msg);
             return;
         }
-
-        if (msg.getSender().equals(client.getUsername())) {
-            return;
+        if (!msg.getSender().equals(client.getUsername())) {
+            if (!isGroupChatMode && currentReceiver != null && (msg.getSender().equals(currentReceiver) || msg.getReceiver().equals(currentReceiver))) {
+                Platform.runLater(() -> showMessageInChat(msg));
+            }
         }
-
-        if (!isGroupChatMode && currentReceiver != null &&
-                (msg.getSender().equals(currentReceiver) || msg.getReceiver().equals(currentReceiver))) {
-            Platform.runLater(() -> showMessageInChat(msg));
-        }
-
-
     }
 
     private void handleGroupInvitation(String groupId) {
@@ -879,7 +875,6 @@ public class ChatRoomController implements Initializable {
                 return DatabaseHandler.getInstance().getGroupById(groupId);
             }
         };
-
         loadGroupTask.setOnSucceeded(e -> {
             GroupChat group = loadGroupTask.getValue();
             if (group != null) {
@@ -920,7 +915,6 @@ public class ChatRoomController implements Initializable {
                 });
             }
         });
-
         loadGroupTask.setOnFailed(e -> {
             System.err.println("Failed to handle group invitation: " + loadGroupTask.getException().getMessage());
             Platform.runLater(() -> {
@@ -931,18 +925,6 @@ public class ChatRoomController implements Initializable {
         new Thread(loadGroupTask).start();
     }
 
-
-    private void handleDatabaseError(String operation, Exception e) {
-        System.err.println("Database error during " + operation + ": " + e.getMessage());
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Database Error");
-            alert.setHeaderText("An error occurred");
-            alert.setContentText("Failed to " + operation + ". Please try again.");
-            alert.showAndWait();
-        });
-    }
-
     @FXML
     private void showGroupInfo(ActionEvent event) {
         GroupChat currentGroup = getCurrentSelectedGroup();
@@ -950,10 +932,8 @@ public class ChatRoomController implements Initializable {
         Dialog<Void> infoDialog = new Dialog<>();
         infoDialog.setTitle("Group Information");
         infoDialog.setHeaderText(currentGroup.getGroupName());
-
         VBox content = new VBox(10);
         content.setPadding(new Insets(20));
-
         Label membersLabel = new Label("Members (" + currentGroup.getMemberCount() + "):");
         ListView<String> membersList = new ListView<>();
         Task<List<String>> loadMembersTask = new Task<List<String>>() {
@@ -966,9 +946,7 @@ public class ChatRoomController implements Initializable {
         loadMembersTask.setOnSucceeded(e -> {
             membersList.getItems().addAll(loadMembersTask.getValue());
         });
-
         new Thread(loadMembersTask).start();
-
         content.getChildren().addAll(membersLabel, membersList);
         infoDialog.getDialogPane().setContent(content);
         infoDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
@@ -987,14 +965,11 @@ public class ChatRoomController implements Initializable {
                             return members.contains(client.getUsername());
                         }
                     };
-
                     checkMembershipTask.setOnSucceeded(e -> {
                         if (checkMembershipTask.getValue()) {
                             loadGroupsForFriendsList();
-                            showJoinGroupNotification(groupId);
                         }
                     });
-
                     new Thread(checkMembershipTask).start();
                 });
             }
@@ -1016,60 +991,7 @@ public class ChatRoomController implements Initializable {
                 GroupMessage finalGroupMsg = groupMsg;
                 Platform.runLater(() -> showGroupMessageInMainChat(finalGroupMsg));
             }
-            DatabaseHandler.getInstance().saveGroupMessageAsync(groupMsg, null);
         }
-    }
-
-    private void showJoinGroupNotification(String groupId) {
-        Task<GroupChat> loadGroupTask = new Task<GroupChat>() {
-            @Override
-            protected GroupChat call() throws Exception {
-                List<GroupChat> userGroups = DatabaseHandler.getInstance().loadUserGroups(client.getUsername());
-                return userGroups.stream()
-                        .filter(group -> group.getGroupId().equals(groupId))
-                        .findFirst()
-                        .orElse(null);
-            }
-        };
-
-        loadGroupTask.setOnSucceeded(e -> {
-            GroupChat group = loadGroupTask.getValue();
-            if (group != null) {
-                Platform.runLater(() -> {
-                    HBox messageBox = new HBox();
-                    messageBox.setPadding(new Insets(5));
-                    messageBox.setAlignment(Pos.CENTER);
-
-                    Button joinGroupBtn = new Button("JOIN_GROUP");
-                    joinGroupBtn.setStyle("-fx-background-color: #128C7E; " +
-                            "-fx-text-fill: white; " +
-                            "-fx-font-weight: bold; " +
-                            "-fx-font-size: 14px; " +
-                            "-fx-padding: 12 20; " +
-                            "-fx-background-radius: 20; " +
-                            "-fx-cursor: hand; " +
-                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 2, 2);");
-
-                    Label timeLabel = new Label(java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(new Date()));
-                    timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 5 0 0 0;");
-
-                    VBox buttonContainer = new VBox(5);
-                    buttonContainer.setAlignment(Pos.CENTER);
-                    buttonContainer.getChildren().addAll(joinGroupBtn, timeLabel);
-
-                    joinGroupBtn.setOnAction(event -> {
-                        switchToGroupChat(group);
-                        updateCardSelection(findGroupCardByName(group.getGroupName()));
-                    });
-
-                    messageBox.getChildren().add(buttonContainer);
-                    msgbox.getChildren().add(messageBox);
-                    chatScroll.setVvalue(1.0);
-                });
-            }
-        });
-
-        new Thread(loadGroupTask).start();
     }
 
     private HBox findGroupCardByName(String groupName) {
@@ -1094,7 +1016,6 @@ public class ChatRoomController implements Initializable {
         if (msg.getSender().equals(client.getUsername())) {
             return;
         }
-
         Platform.runLater(() -> {
             GroupMessage systemMsg;
             if (msg.getContent().startsWith("MEMBER_JOINED:")) {
@@ -1123,10 +1044,8 @@ public class ChatRoomController implements Initializable {
     @FXML
     private void sendGroupFile() {
         if (!isGroupChatMode) return;
-
         GroupChat currentGroup = getCurrentSelectedGroup();
         if (currentGroup == null) return;
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Choose File to Send to Group");
         File selectedFile = fileChooser.showOpenDialog(null);
@@ -1152,65 +1071,19 @@ public class ChatRoomController implements Initializable {
 
     private void initializeUserGroups() {
         if (client == null) return;
-
         Task<List<GroupChat>> loadUserGroupsTask = new Task<List<GroupChat>>() {
             @Override
             protected List<GroupChat> call() throws Exception {
                 return DatabaseHandler.getInstance().loadUserGroups(client.getUsername());
             }
         };
-
-        loadUserGroupsTask.setOnSucceeded(e -> {
-            List<GroupChat> userGroups = loadUserGroupsTask.getValue();
-            initializeChatClientAsync(() -> {
-                for (GroupChat group : userGroups) {
-                    try {
-                        ChatMessage registerMsg = new ChatMessage(client.getUsername(),
-                                "GROUP:" + group.getGroupId(), "JOIN_GROUP");
-                        chatClient.sendMessage(registerMsg);
-                        System.out.println("Registered for group: " + group.getGroupName());
-                    } catch (Exception ex) {
-                        System.err.println("Error registering user in group: " + ex.getMessage());
-                    }
-                }
-            });
-        });
-
-        loadUserGroupsTask.setOnFailed(e -> {
-            System.err.println("Failed to load user groups: " + loadUserGroupsTask.getException().getMessage());
-        });
-
         new Thread(loadUserGroupsTask).start();
-    }
-
-    private void initializeChatClientAsync(Runnable onComplete) {
-        Task<Void> chatClientTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                chatClient = new ChatClient(IpNiyeMaramari.serverip, client.getUsername());
-                chatClient.listenForMsg(ChatRoomController.this::handleIncomingMsg);
-                return null;
-            }
-        };
-
-        chatClientTask.setOnSucceeded(e -> {
-            if (onComplete != null) {
-                onComplete.run();
-            }
-        });
-
-        chatClientTask.setOnFailed(e -> {
-            System.out.println("Error connecting to server: " + chatClientTask.getException().getMessage());
-        });
-
-        new Thread(chatClientTask).start();
     }
 
     private void showMessageInChat(ChatMessage msg) {
         HBox hBox = new HBox();
         hBox.setPadding(new Insets(3));
         hBox.setAlignment(msg.getSender().equals(client.getUsername()) ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-
         Node messageNode;
         if (msg.isFile()) {
             String filename = msg.getFileName().toLowerCase();
@@ -1222,7 +1095,6 @@ public class ChatRoomController implements Initializable {
         } else {
             messageNode = buildTextBubble(msg);
         }
-
         hBox.getChildren().add(messageNode);
         msgbox.getChildren().add(hBox);
         chatScroll.setVvalue(1.0);
@@ -1233,27 +1105,28 @@ public class ChatRoomController implements Initializable {
         label.setWrapText(true);
         label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
         label.setMaxHeight(Double.MAX_VALUE);
-        label.setPadding(new Insets(12));
-
+        label.setPadding(new Insets(15));
         if (msg.getSender().equals(client.getUsername())) {
-            label.setStyle("-fx-background-color: #128C7E; " +
-                    "-fx-text-fill: white; " +
+            label.setStyle("-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e); " +
+                    "-fx-text-fill: #ffd700; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
-                    "-fx-padding: 12; " +
-                    "-fx-background-radius: 18; " +
-                    "-fx-border-radius: 18; " +
-                    "-fx-border-color: rgba(255,255,255,0.3); " +
+                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
+                    "-fx-effect: dropshadow(gaussian, #2d1b69, 8, 0.7, 2, 4); " +
+                    "-fx-padding: 15; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-border-radius: 25; " +
+                    "-fx-border-color: #6b5b73; " +
                     "-fx-border-width: 2;");
         } else {
-            label.setStyle("-fx-background-color: white; " +
-                    "-fx-text-fill: #2c3e50; " +
+            label.setStyle("-fx-background-color: linear-gradient(to bottom, #3d2d5d, #2a1f3d); " +
+                    "-fx-text-fill: #e6ddd4; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 2, 2); " +
-                    "-fx-padding: 12; " +
-                    "-fx-background-radius: 18; " +
-                    "-fx-border-radius: 18; " +
-                    "-fx-border-color: #34495e; " +
+                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
+                    "-fx-effect: dropshadow(gaussian, #1a1a2e, 6, 0.6, 3, 4); " +
+                    "-fx-padding: 15; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-border-radius: 25; " +
+                    "-fx-border-color: #6b5b73; " +
                     "-fx-border-width: 2;");
         }
         return label;
@@ -1347,7 +1220,6 @@ public class ChatRoomController implements Initializable {
         if (profilePicturePath == null || profilePicturePath.isBlank()) {
             return loadDefaultProfileImage();
         }
-
         if (profilePicturePath.startsWith("profile_pictures/")) {
             String username = profilePicturePath.substring("profile_pictures/".length());
             Image img = DatabaseHandler.getInstance().getProfilePicture(username);
@@ -1358,7 +1230,6 @@ public class ChatRoomController implements Initializable {
                 return loadDefaultProfileImage();
             }
         }
-
         try {
             return new Image(profilePicturePath);
         } catch (Exception e) {
@@ -1375,8 +1246,6 @@ public class ChatRoomController implements Initializable {
         return new Image(url.toExternalForm());
     }
 
-
-
     public void getClient(Client client) {
         this.client = client;
         System.out.println("Got client");
@@ -1386,6 +1255,7 @@ public class ChatRoomController implements Initializable {
         initializeChatClientAsync();
         loadFriendsAsync();
         initializeUserGroups();
+        initializeGameManager();
     }
 
     private void loadUserProfileImageAsync() {
@@ -1416,9 +1286,20 @@ public class ChatRoomController implements Initializable {
         backgroundImageView.setPreserveRatio(false);
 
         leftbase.getChildren().add(0, backgroundImageView);
-        leftpane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-radius: 10; -fx-padding: 10;");
-        friendslist.setStyle("-fx-background-color: rgba(0,0,0,0.3); -fx-background: transparent; -fx-padding: 10;");
+        leftpane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-radius: 10; -fx-padding: 10;" +
+                "-fx-background-radius: 15; " +
+                "-fx-border-color: #8b4513; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 15; " +
+                "-fx-padding: 15;");
 
+        friendslist.setStyle("-fx-background-color: linear-gradient(to bottom, rgba(44, 24, 16, 0.8), rgba(26, 15, 8, 0.9)); -fx-background: transparent; " +
+                "-fx-background-radius: 12; " +
+                "-fx-border-color: #8b4513; " +
+                "-fx-border-width: 1; " +
+                "-fx-border-radius: 12; " +
+                "-fx-padding: 12; " +
+                "-fx-effect: innershadow(gaussian, #000000, 8, 0.4, 0, 0);");
         UpdateBG();
         setUpBackgroundTimer();
     }
@@ -1432,7 +1313,6 @@ public class ChatRoomController implements Initializable {
                 return null;
             }
         };
-
         chatClientTask.setOnFailed(e -> {
             System.out.println("Error connecting to server: " + chatClientTask.getException().getMessage());
         });
@@ -1452,7 +1332,6 @@ public class ChatRoomController implements Initializable {
 
     private void loadFriends(List<Client> allclients) {
         friendslist.getChildren().clear();
-
         for (var c : allclients) {
             if (c.getUsername().equals(client.getUsername())) {
                 continue;
@@ -1462,7 +1341,6 @@ public class ChatRoomController implements Initializable {
 
             friendslist.getChildren().add(card);
         }
-
         Separator separator = new Separator();
         separator.setStyle("-fx-background-color: rgba(255,255,255,0.3);");
         friendslist.getChildren().add(separator);
@@ -1479,13 +1357,11 @@ public class ChatRoomController implements Initializable {
                 return DatabaseHandler.getInstance().loadUserGroups(client.getUsername());
             }
         };
-
         loadGroupsTask.setOnSucceeded(e -> {
             List<GroupChat> groups = loadGroupsTask.getValue();
             Platform.runLater(() -> {
                 List<Node> toRemove = new ArrayList<>();
                 boolean foundSeparator = false;
-
                 for (Node node : friendslist.getChildren()) {
                     if (node instanceof Separator) {
                         foundSeparator = true;
@@ -1500,7 +1376,6 @@ public class ChatRoomController implements Initializable {
                 if (isGroupChatMode && currentSelectedGroup != null) {
                     selectedGroupName = currentSelectedGroup.getGroupName();
                 }
-
                 for (GroupChat group : groups) {
                     HBox groupCard = createGroupCard(group);
                     friendslist.getChildren().add(groupCard);
@@ -1527,26 +1402,20 @@ public class ChatRoomController implements Initializable {
         Circle clip = new Circle(24, 24, 24);
         img.setClip(clip);
         img.setImage(loadDefaultGroupImage());
-
         VBox groupInfo = new VBox(2);
         Label name = new Label(group.getGroupName());
         name.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-
         Label memberCount = new Label(group.getMemberCount() + " members");
         memberCount.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 12px;");
-
         groupInfo.getChildren().addAll(name, memberCount);
-
         Circle groupIndicator = new Circle(6);
         groupIndicator.setFill(Color.web("#FF9800"));
-
         card.getChildren().addAll(img, groupInfo, groupIndicator);
         card.setOnMouseClicked(e -> {
             switchToGroupChat(group);
             updateCardSelection(card);
         });
         styleGroupCard(card);
-
         return card;
     }
 
@@ -1573,47 +1442,26 @@ public class ChatRoomController implements Initializable {
     private void styleGroupCard(HBox card) {
         card.setOnMouseEntered(e -> {
             if (!isCardCurrentlySelected(card)) {
-                card.setStyle("-fx-background-color: rgba(255,255,255,0.6); " +
-                        "-fx-background-radius: 10; " +
+                card.setStyle("-fx-background-color: rgba(44, 24, 16, 0.8); " +
+                        "-fx-background-radius: 12; " +
                         "-fx-cursor: hand; " +
-                        "-fx-border-color: rgba(255,255,255,0.8); " +
-                        "-fx-border-width: 2;");
+                        "-fx-border-color: #d4af37; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 12; " +
+                        "-fx-effect: dropshadow(gaussian, #d4af37, 8, 0.6, 0, 0);");
             }
         });
-
         card.setOnMouseExited(e -> {
             if (!isCardCurrentlySelected(card)) {
-                card.setStyle("-fx-background-color: rgba(255,255,255,0.1); " +
-                        "-fx-background-radius: 10; " +
-                        "-fx-cursor: hand;");
+                card.setStyle("-fx-background-color: rgba(13, 7, 7, 0.6); " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-cursor: hand; " +
+                        "-fx-border-color: rgba(139, 69, 19, 0.5); " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 12;");
             }
         });
     }
-
-    private boolean isCurrentGroupCard(HBox card) {
-        try {
-            if (!isGroupChatMode || card.getChildren().size() < 2) {
-                return false;
-            }
-
-            GroupChat currentGroup = getCurrentSelectedGroup();
-            if (currentGroup == null) {
-                return false;
-            }
-
-            VBox groupInfo = (VBox) card.getChildren().get(1);
-            if (groupInfo.getChildren().size() < 1) {
-                return false;
-            }
-
-            Label nameLabel = (Label) groupInfo.getChildren().get(0);
-            return nameLabel.getText().equals(currentGroup.getGroupName());
-        } catch (Exception e) {
-            System.err.println("Error checking if current group card: " + e.getMessage());
-            return false;
-        }
-    }
-
     private boolean isCardCurrentlySelected(HBox card) {
         try {
             if (!isGroupChatMode || card.getChildren().size() < 2) {
@@ -1626,7 +1474,6 @@ public class ChatRoomController implements Initializable {
             return false;
         }
     }
-
     private void switchToGroupChat(GroupChat group) {
         isGroupChatMode = true;
         currentSelectedGroup = group;
@@ -1636,8 +1483,8 @@ public class ChatRoomController implements Initializable {
         msgbox.getChildren().clear();
         loadGroupChatHistoryInMainChat(group.getGroupId());
         showGroupButtons();
+        removeGameButtonFromClientCard();
     }
-
     private void loadGroupChatHistoryInMainChat(String groupId) {
         Task<List<GroupMessage>> loadChatTask = new Task<List<GroupMessage>>() {
             @Override
@@ -1662,12 +1509,17 @@ public class ChatRoomController implements Initializable {
 
     private Node buildSystemMessageForMainChat(GroupMessage msg) {
         Label systemLabel = new Label(msg.getContent());
-        systemLabel.setStyle("-fx-text-fill: #888888; " +
+        systemLabel.setStyle("-fx-text-fill: #ffffff; " +
                 "-fx-font-style: italic; " +
-                "-fx-font-size: 12px; " +
-                "-fx-background-color: rgba(255,255,255,0.1); " +
-                "-fx-background-radius: 10; " +
-                "-fx-padding: 8 12;");
+                "-fx-font-size: 14px; " +
+                "-fx-font-weight: bold; " +
+                "-fx-background-color: rgba(50, 50, 50, 0.9); " +
+                "-fx-background-radius: 15; " +
+                "-fx-padding: 12 16; " +
+                "-fx-border-color: rgba(255, 255, 255, 0.3); " +
+                "-fx-border-width: 1; " +
+                "-fx-border-radius: 15; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.5, 2, 2);");
         systemLabel.setWrapText(true);
         return systemLabel;
     }
@@ -1676,20 +1528,10 @@ public class ChatRoomController implements Initializable {
         VBox bubble = new VBox(5);
         bubble.setPadding(new Insets(12));
         bubble.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
-
-//        if (!msg.getSenderUsername().equals(client.getUsername())) {
-//            Label senderInBubble = new Label(msg.getSenderUsername());
-//            senderInBubble.setStyle("-fx-text-fill: #2980b9; " +
-//                    "-fx-font-size: 10px; " +
-//                    "-fx-font-weight: bold; " +
-//                    "-fx-padding: 0 0 3 0;");
-//            bubble.getChildren().add(senderInBubble);
-//        }
-
         Label contentLabel = new Label(msg.getContent());
         contentLabel.setWrapText(true);
         contentLabel.setStyle("-fx-text-fill: " +
-                (msg.getSenderUsername().equals(client.getUsername()) ? "white" : "#2c3e50") +
+                (msg.getSenderUsername().equals(client.getUsername()) ? "#ffd700" : "white") +
                 "; -fx-font-weight: bold;");
 
         Label timeLabel = new Label(msg.getFormattedTimestamp());
@@ -1700,18 +1542,26 @@ public class ChatRoomController implements Initializable {
         bubble.getChildren().addAll(contentLabel, timeLabel);
 
         if (msg.getSenderUsername().equals(client.getUsername())) {
-            bubble.setStyle("-fx-background-color: #128C7E; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
-                    "-fx-background-radius: 18; " +
-                    "-fx-border-radius: 18; " +
-                    "-fx-border-color: rgba(255,255,255,0.3); " +
+            bubble.setStyle("-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e); " +
+                    "-fx-text-fill: #ffd700; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
+                    "-fx-effect: dropshadow(gaussian, #2d1b69, 8, 0.7, 2, 4); " +
+                    "-fx-padding: 15; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-border-radius: 25; " +
+                    "-fx-border-color: #6b5b73; " +
                     "-fx-border-width: 2;");
         } else {
-            bubble.setStyle("-fx-background-color: white; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 2, 2); " +
-                    "-fx-background-radius: 18; " +
-                    "-fx-border-radius: 18; " +
-                    "-fx-border-color: #34495e; " +
+            bubble.setStyle("-fx-background-color: linear-gradient(to bottom, #3d2d5d, #2a1f3d); " +
+                    "-fx-text-fill: #e6ddd4; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
+                    "-fx-effect: dropshadow(gaussian, #1a1a2e, 6, 0.6, 3, 4); " +
+                    "-fx-padding: 15; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-border-radius: 25; " +
+                    "-fx-border-color: #6b5b73; " +
                     "-fx-border-width: 2;");
         }
 
@@ -1913,6 +1763,7 @@ public class ChatRoomController implements Initializable {
         clientIdLabel.setText(client.getUsername());
         msgbox.getChildren().clear();
         loadChatHistory(this.client.getUsername(), currentReceiver);
+        addGameButtonToClientCard();
     }
 
     private String formatLastSeen(Date lastSeen) {
@@ -1948,14 +1799,19 @@ public class ChatRoomController implements Initializable {
         Label status = new Label();
         if (c.isOnline()) {
             status.setText("Online");
-            status.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 12px;");
+            status.setStyle("-fx-text-fill: #00ff41; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-effect: dropshadow(gaussian, #00ff41, 3, 0.5, 0, 0);");
         } else {
             if (c.getLastSeen() != null) {
                 status.setText("Last seen: " + formatLastSeen(c.getLastSeen()));
             } else {
                 status.setText("Offline");
             }
-            status.setStyle("-fx-text-fill: #888888; -fx-font-size: 12px;");
+            status.setStyle("-fx-text-fill: #666666; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-font-family: 'Times New Roman', serif;");
         }
 
         userInfo.getChildren().addAll(name, status);
@@ -1989,6 +1845,13 @@ public class ChatRoomController implements Initializable {
     }
 
     private void styleFriendCard(HBox card, Client c) {
+        card.setStyle("-fx-background-color: linear-gradient(to right, rgba(44, 24, 16, 0.6), rgba(26, 15, 8, 0.7)); " +
+                "-fx-background-radius: 12; " +
+                "-fx-border-color: rgba(139, 69, 19, 0.5); " +
+                "-fx-border-width: 1; " +
+                "-fx-border-radius: 12; " +
+                "-fx-cursor: hand;");
+
         card.setOnMouseClicked(e -> {
             switchToDirectChat(c);
             updateFriendCardStyle(card);
@@ -1996,18 +1859,22 @@ public class ChatRoomController implements Initializable {
 
         card.setOnMouseEntered(e -> {
             if (!c.getUsername().equals(currentReceiver)) {
-                card.setStyle("-fx-background-color: rgba(255,255,255,0.6); " +
-                        "-fx-background-radius: 10; " +
+                card.setStyle("-fx-background-color: linear-gradient(to right, rgba(61, 34, 26, 0.8), rgba(38, 22, 18, 0.9)); " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-border-color: #d4af37; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 12; " +
                         "-fx-cursor: hand; " +
-                        "-fx-border-color: rgba(255,255,255,0.8); " +
-                        "-fx-border-width: 2;");
+                        "-fx-effect: dropshadow(gaussian, #d4af37, 4, 0.3, 0, 0);");
             }
         });
-
         card.setOnMouseExited(e -> {
             if (!c.getUsername().equals(currentReceiver)) {
-                card.setStyle("-fx-background-color: rgba(255,255,255,0.1); " +
-                        "-fx-background-radius: 10; " +
+                card.setStyle("-fx-background-color: linear-gradient(to right, rgba(44, 24, 16, 0.6), rgba(26, 15, 8, 0.7)); " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-border-color: rgba(139, 69, 19, 0.5); " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 12; " +
                         "-fx-cursor: hand;");
             }
         });
@@ -2164,7 +2031,6 @@ public class ChatRoomController implements Initializable {
                 System.out.println("Group message saved to database");
             });
 
-            // Send through server for real-time broadcasting to group members
             String groupReceiver = "GROUP:" + currentGroup.getGroupId();
             ChatMessage serverMsg = new ChatMessage(client.getUsername(), groupReceiver, content);
             chatClient.sendMessage(serverMsg);
@@ -2226,75 +2092,291 @@ public class ChatRoomController implements Initializable {
         createGroupDialog = new Dialog<>();
         createGroupDialog.setTitle("Create New Group");
         createGroupDialog.setHeaderText("Create a new group chat");
+        createGroupDialog.getDialogPane().setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0707);" +
+                        "-fx-text-fill: #d4af37;" +
+                        "-fx-border-color: #8b4513;" +
+                        "-fx-border-width: 3;" +
+                        "-fx-border-radius: 15;" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-effect: dropshadow(gaussian, #000000, 10, 0.6, 0, 5);"
+        );
 
-        // Create dialog content
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
+        grid.setHgap(15);
+        grid.setVgap(15);
+        grid.setPadding(new Insets(20, 20, 20, 20));
+        grid.setStyle("-fx-background-color: #2b2b2b;");
         groupNameField = new TextField();
-        groupNameField.setPromptText("Group name");
-        groupNameField.setPrefWidth(200);
-
+        groupNameField.setPromptText("Enter group name");
+        groupNameField.setPrefWidth(250);
+        groupNameField.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, rgba(44, 24, 16, 0.9), rgba(26, 15, 8, 0.9));" +
+                        "-fx-text-fill: #d4af37;" +
+                        "-fx-prompt-text-fill: rgba(212, 175, 55, 0.6);" +
+                        "-fx-border-color: #8b4513;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;"
+        );
         groupDescriptionField = new TextArea();
-        groupDescriptionField.setPromptText("Group description (optional)");
+        groupDescriptionField.setPromptText("Enter group description (optional)");
         groupDescriptionField.setPrefRowCount(3);
-        groupDescriptionField.setPrefWidth(200);
+        groupDescriptionField.setPrefWidth(250);
+        groupDescriptionField.setWrapText(true);
+        groupDescriptionField.setStyle(
+                "-fx-background-color: #3c3c3c;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-prompt-text-fill: #888888;" +
+                        "-fx-border-color: #555555;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-control-inner-background: #3c3c3c;"
+        );
+        Label groupNameLabel = new Label("Group Name:");
+        groupNameLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
+
+        Label descriptionLabel = new Label("Description:");
+        descriptionLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
 
         Label membersLabel = new Label("Add Members:");
-        membersLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        membersLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
+        membersLabel.setStyle("-fx-text-fill: #ffffff; -fx-font-family: 'Segoe UI';");
 
+        Label availableLabel = new Label("Available Users:");
+        availableLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
+
+        Label selectedLabel = new Label("Selected Members:");
+        selectedLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
         availableUsersListView = new ListView<>();
-        availableUsersListView.setPrefHeight(150);
+        availableUsersListView.setPrefHeight(180);
+        availableUsersListView.setPrefWidth(200);
         availableUsersListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        availableUsersListView.setStyle(
+                "-fx-background-color: #3c3c3c;" +
+                        "-fx-border-color: #555555;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-control-inner-background: #3c3c3c;"
+        );
 
         selectedMembersListView = new ListView<>();
-        selectedMembersListView.setPrefHeight(150);
-
+        selectedMembersListView.setPrefHeight(180);
+        selectedMembersListView.setPrefWidth(200);
+        selectedMembersListView.setStyle(
+                "-fx-background-color: #3c3c3c;" +
+                        "-fx-border-color: #555555;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-control-inner-background: #3c3c3c;"
+        );
         VBox buttonBox = new VBox(10);
+        buttonBox.setAlignment(Pos.CENTER);
+
         Button addMemberBtn = new Button("Add →");
+        addMemberBtn.setPrefWidth(80);
+        addMemberBtn.setStyle(
+                "-fx-background-color: #0078d4;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-cursor: hand;"
+        );
+
         Button removeMemberBtn = new Button("← Remove");
+        removeMemberBtn.setPrefWidth(80);
+        removeMemberBtn.setStyle(
+                "-fx-background-color: #0078d4;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-cursor: hand;"
+        );
+        addMemberBtn.setOnMouseEntered(e -> addMemberBtn.setStyle(
+                "-fx-background-color: #106ebe;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-cursor: hand;"
+        ));
+
+        addMemberBtn.setOnMouseExited(e -> addMemberBtn.setStyle(
+                "-fx-background-color: #0078d4;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-cursor: hand;"
+        ));
+
+        removeMemberBtn.setOnMouseEntered(e -> removeMemberBtn.setStyle(
+                "-fx-background-color: #106ebe;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-cursor: hand;"
+        ));
+
+        removeMemberBtn.setOnMouseExited(e -> removeMemberBtn.setStyle(
+                "-fx-background-color: #0078d4;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-cursor: hand;"
+        ));
 
         addMemberBtn.setOnAction(e -> {
-            List<String> selected = availableUsersListView.getSelectionModel().getSelectedItems();
+            List<String> selected = new ArrayList<>(availableUsersListView.getSelectionModel().getSelectedItems());
             for (String user : selected) {
                 if (!selectedMembersListView.getItems().contains(user)) {
                     selectedMembersListView.getItems().add(user);
                 }
             }
+            availableUsersListView.getSelectionModel().clearSelection();
         });
 
         removeMemberBtn.setOnAction(e -> {
             List<String> selected = new ArrayList<>(selectedMembersListView.getSelectionModel().getSelectedItems());
             selectedMembersListView.getItems().removeAll(selected);
+            selectedMembersListView.getSelectionModel().clearSelection();
         });
 
         buttonBox.getChildren().addAll(addMemberBtn, removeMemberBtn);
-        buttonBox.setAlignment(Pos.CENTER);
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(120);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setMinWidth(200);
+        ColumnConstraints col3 = new ColumnConstraints();
+        col3.setMinWidth(200);
+        grid.getColumnConstraints().addAll(col1, col2, col3);
+        grid.add(groupNameLabel, 0, 0);
+        grid.add(groupNameField, 1, 0, 2, 1);
 
-        // Layout
-        grid.add(new Label("Group Name:"), 0, 0);
-        grid.add(groupNameField, 1, 0);
-        grid.add(new Label("Description:"), 0, 1);
-        grid.add(groupDescriptionField, 1, 1);
-        grid.add(membersLabel, 0, 2);
-        grid.add(new Label("Available Users:"), 0, 3);
+        grid.add(descriptionLabel, 0, 1);
+        grid.add(groupDescriptionField, 1, 1, 2, 1);
+
+        grid.add(membersLabel, 0, 2, 3, 1);
+
+        grid.add(availableLabel, 0, 3);
+        grid.add(selectedLabel, 2, 3);
+
         grid.add(availableUsersListView, 0, 4);
         grid.add(buttonBox, 1, 4);
-        grid.add(new Label("Selected Members:"), 2, 3);
         grid.add(selectedMembersListView, 2, 4);
 
         createGroupDialog.getDialogPane().setContent(grid);
-
-        ButtonType createButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
+        ButtonType createButtonType = new ButtonType("Create Group", ButtonBar.ButtonData.OK_DONE);
         createGroupDialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
 
         Node createButton = createGroupDialog.getDialogPane().lookupButton(createButtonType);
-        createButton.setDisable(true);
+        Node cancelButton = createGroupDialog.getDialogPane().lookupButton(ButtonType.CANCEL);
 
+        createButton.setDisable(true);
+        createButton.setStyle(
+                "-fx-background-color: #2a2a2a;" +
+                        "-fx-text-fill: #666666;" +
+                        "-fx-border-color: #444444;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-padding: 8px 16px;"
+        );
+
+        cancelButton.setStyle(
+                "-fx-background-color: #3c3c3c;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-color: #555555;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-padding: 8px 16px;"
+        );
+        cancelButton.setOnMouseEntered(e -> cancelButton.setStyle(
+                "-fx-background-color: #4a4a4a;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-color: #555555;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-padding: 8px 16px;"
+        ));
+
+        cancelButton.setOnMouseExited(e -> cancelButton.setStyle(
+                "-fx-background-color: #3c3c3c;" +
+                        "-fx-text-fill: #ffffff;" +
+                        "-fx-border-color: #555555;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4px;" +
+                        "-fx-background-radius: 4px;" +
+                        "-fx-padding: 8px 16px;"
+        ));
         groupNameField.textProperty().addListener((observable, oldValue, newValue) -> {
-            createButton.setDisable(newValue.trim().isEmpty());
+            boolean isEmpty = newValue == null || newValue.trim().isEmpty();
+            createButton.setDisable(isEmpty);
+            if (!isEmpty) {
+                createButton.setStyle(
+                        "-fx-background-color: #0078d4;" +
+                                "-fx-text-fill: #ffffff;" +
+                                "-fx-border-color: #0078d4;" +
+                                "-fx-border-width: 1px;" +
+                                "-fx-border-radius: 4px;" +
+                                "-fx-background-radius: 4px;" +
+                                "-fx-padding: 8px 16px;"
+                );
+                createButton.setOnMouseEntered(e -> createButton.setStyle(
+                        "-fx-background-color: #106ebe;" +
+                                "-fx-text-fill: #ffffff;" +
+                                "-fx-border-color: #106ebe;" +
+                                "-fx-border-width: 1px;" +
+                                "-fx-border-radius: 4px;" +
+                                "-fx-background-radius: 4px;" +
+                                "-fx-padding: 8px 16px;"
+                ));
+
+                createButton.setOnMouseExited(e -> createButton.setStyle(
+                        "-fx-background-color: #0078d4;" +
+                                "-fx-text-fill: #ffffff;" +
+                                "-fx-border-color: #0078d4;" +
+                                "-fx-border-width: 1px;" +
+                                "-fx-border-radius: 4px;" +
+                                "-fx-background-radius: 4px;" +
+                                "-fx-padding: 8px 16px;"
+                ));
+            } else {
+                createButton.setStyle(
+                        "-fx-background-color: #2a2a2a;" +
+                                "-fx-text-fill: #666666;" +
+                                "-fx-border-color: #444444;" +
+                                "-fx-border-width: 1px;" +
+                                "-fx-border-radius: 4px;" +
+                                "-fx-background-radius: 4px;" +
+                                "-fx-padding: 8px 16px;"
+                );
+                createButton.setOnMouseEntered(null);
+                createButton.setOnMouseExited(null);
+            }
         });
 
         createGroupDialog.setResultConverter(dialogButton -> {
@@ -2305,10 +2387,10 @@ public class ChatRoomController implements Initializable {
                 if (!groupName.isEmpty()) {
                     String groupId = UUID.randomUUID().toString();
                     GroupChat newGroup = new GroupChat(groupId, groupName, client.getUsername());
+
                     if (!description.isEmpty()) {
                         newGroup.setGroupDescription(description);
                     }
-
                     for (String memberUsername : selectedMembersListView.getItems()) {
                         newGroup.addMember(memberUsername);
                     }
@@ -2354,7 +2436,6 @@ public class ChatRoomController implements Initializable {
             protected Boolean call() throws Exception {
                 boolean success = DatabaseHandler.getInstance().createGroup(groupChat);
                 if (success) {
-                    // First register this client to receive group messages
                     try {
                         ChatMessage registerMsg = new ChatMessage(client.getUsername(),
                                 "GROUP:" + groupChat.getGroupId(), "JOIN_GROUP");
@@ -2363,12 +2444,10 @@ public class ChatRoomController implements Initializable {
                     } catch (Exception e) {
                         System.err.println("Error registering creator in group: " + e.getMessage());
                     }
-
-                    // Then send invitations to other members (NOT including creator)
                     for (String memberUsername : groupChat.getMembers()) {
                         if (!memberUsername.equals(client.getUsername())) {
                             try {
-                                ChatMessage inviteMsg = new ChatMessage(client.getUsername(),
+                                ChatMessage inviteMsg = new ChatMessage("SYSTEM",
                                         memberUsername, "GROUP_INVITATION:" + groupChat.getGroupId());
                                 chatClient.sendMessage(inviteMsg);
                                 System.out.println("Sent group invitation to: " + memberUsername);
@@ -2422,7 +2501,6 @@ public class ChatRoomController implements Initializable {
         try {
             String BGPath = "/com/example/owlpost_2_0/Images/Backgrounds/" + TimeBasedBG() + ".gif";
             Image image = new Image(getClass().getResource(BGPath).toExternalForm());
-//            Audios.playBGM(TimeBasedBG());
 
             Platform.runLater(() -> {
                 chatBG.setImage(image);
@@ -2431,7 +2509,6 @@ public class ChatRoomController implements Initializable {
                 chatBG.setPreserveRatio(false);
 
                 chatBG.toBack();
-//                chatScroll.setStyle("-fx-background: rgba(255, 255, 255, 0.1); -fx-background-color: rgba(255, 255, 255, 0.1;");
                 chatScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
                 msgbox.setStyle("-fx-background-color: transparent; -fx-padding: 10");
             });
@@ -2443,32 +2520,101 @@ public class ChatRoomController implements Initializable {
 
     private void createGroupButtons() {
         if (groupButtonsContainer == null) {
-            groupButtonsContainer = new HBox(10);
+            groupButtonsContainer = new HBox(15);
             groupButtonsContainer.setAlignment(Pos.CENTER);
-            groupButtonsContainer.setPadding(new Insets(5));
-            groupInfoBtn = new Button("ℹ️ Info");
-            groupInfoBtn.setStyle("-fx-background-color: #3498db; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 12px; " +
-                    "-fx-padding: 5 10; " +
-                    "-fx-background-radius: 15; " +
-                    "-fx-cursor: hand;");
+            groupButtonsContainer.setPadding(new Insets(8));
+            groupButtonsContainer.setStyle("-fx-background-color: rgba(26, 26, 26, 0.85); " +
+                    "-fx-background-radius: 12; " +
+                    "-fx-border-color: rgba(212, 175, 55, 0.6); " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 12; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 8, 0.4, 0, 3);");
+            groupInfoBtn = new Button("🔮 Secrets");
+            groupInfoBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2c1810, #1a0f08); " +
+                    "-fx-text-fill: #d4af37; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: #8b4513; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);");
+            groupInfoBtn.setOnMouseEntered(e -> groupInfoBtn.setStyle(groupInfoBtn.getStyle() +
+                    "-fx-background-color: linear-gradient(to bottom, #3d221a, #261612); " +
+                    "-fx-text-fill: #ffd700;"));
+            groupInfoBtn.setOnMouseExited(e -> groupInfoBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2c1810, #1a0f08); " +
+                    "-fx-text-fill: #d4af37; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: #8b4513; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);"));
             groupInfoBtn.setOnAction(this::showGroupInfo);
-            addMemberBtn = new Button("➕ Add");
-            addMemberBtn.setStyle("-fx-background-color: #27ae60; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 12px; " +
-                    "-fx-padding: 5 10; " +
-                    "-fx-background-radius: 15; " +
-                    "-fx-cursor: hand;");
+            addMemberBtn = new Button("⚡ Recruit");
+            addMemberBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #0f2a0f, #071207); " +
+                    "-fx-text-fill: #90ee90; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: #228b22; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);");
+            addMemberBtn.setOnMouseEntered(e -> addMemberBtn.setStyle(addMemberBtn.getStyle() +
+                    "-fx-background-color: linear-gradient(to bottom, #1a3d1a, #0d1f0d); " +
+                    "-fx-text-fill: #98fb98;"));
+            addMemberBtn.setOnMouseExited(e -> addMemberBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #0f2a0f, #071207); " +
+                    "-fx-text-fill: #90ee90; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: #228b22; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);"));
             addMemberBtn.setOnAction(this::addMemberToGroup);
-            leaveGroupBtn = new Button("🚪 Leave");
-            leaveGroupBtn.setStyle("-fx-background-color: #e74c3c; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 12px; " +
-                    "-fx-padding: 5 10; " +
-                    "-fx-background-radius: 15; " +
-                    "-fx-cursor: hand;");
+            leaveGroupBtn = new Button("💀 Vanish");
+            leaveGroupBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2a0a0a, #150505); " +
+                    "-fx-text-fill: #ff6b6b; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: #8b0000; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);");
+            leaveGroupBtn.setOnMouseEntered(e -> leaveGroupBtn.setStyle(leaveGroupBtn.getStyle() +
+                    "-fx-background-color: linear-gradient(to bottom, #3d1010, #1f0808); " +
+                    "-fx-text-fill: #ff4444;"));
+            leaveGroupBtn.setOnMouseExited(e -> leaveGroupBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2a0a0a, #150505); " +
+                    "-fx-text-fill: #ff6b6b; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: #8b0000; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);"));
             leaveGroupBtn.setOnAction(this::leaveGroup);
 
             groupButtonsContainer.getChildren().addAll(groupInfoBtn, addMemberBtn, leaveGroupBtn);
@@ -2478,8 +2624,18 @@ public class ChatRoomController implements Initializable {
     private void showGroupButtons() {
         createGroupButtons();
         if (!chatbody.getChildren().contains(groupButtonsContainer)) {
-            int insertIndex = chatbody.getChildren().indexOf(userCard) + 1;
-            chatbody.getChildren().add(insertIndex, groupButtonsContainer);
+            groupButtonsContainer.setLayoutX(10);
+            groupButtonsContainer.setLayoutY(10);
+            if (chatbody.getParent() instanceof StackPane) {
+                StackPane parent = (StackPane) chatbody.getParent();
+                if (!parent.getChildren().contains(groupButtonsContainer)) {
+                    parent.getChildren().add(groupButtonsContainer);
+                    groupButtonsContainer.toFront();
+                }
+            } else {
+                int insertIndex = 0;
+                chatbody.getChildren().add(insertIndex, groupButtonsContainer);
+            }
         }
         groupButtonsContainer.setVisible(true);
     }
@@ -2488,6 +2644,10 @@ public class ChatRoomController implements Initializable {
         if (groupButtonsContainer != null) {
             groupButtonsContainer.setVisible(false);
             chatbody.getChildren().remove(groupButtonsContainer);
+            if (chatbody.getParent() instanceof StackPane) {
+                StackPane parent = (StackPane) chatbody.getParent();
+                parent.getChildren().remove(groupButtonsContainer);
+            }
         }
     }
 
@@ -2578,12 +2738,10 @@ public class ChatRoomController implements Initializable {
                     }
 
                     try {
-                        ChatMessage notificationMsg = new ChatMessage(client.getUsername(),
-                                "GROUP:" + groupId, "MEMBER_JOINED:" + memberNames);
+                        ChatMessage notificationMsg = new ChatMessage(client.getUsername(),"GROUP:" + groupId, "MEMBER_JOINED:" + memberNames);
                         chatClient.sendMessage(notificationMsg);
                         for (String username : usernames) {
-                            ChatMessage inviteMsg = new ChatMessage(client.getUsername(),
-                                    username, "GROUP_INVITATION:" + groupId);
+                            ChatMessage inviteMsg = new ChatMessage("SYSTEM",username, "GROUP_INVITATION:" + groupId);
                             chatClient.sendMessage(inviteMsg);
                             System.out.println("Sent invitation to: " + username + " for group: " + groupId);
                         }
@@ -2626,7 +2784,6 @@ public class ChatRoomController implements Initializable {
                             currentGroup.getGroupId(), client.getUsername());
                 }
             };
-
             leaveTask.setOnSucceeded(e -> {
                 if (leaveTask.getValue()) {
                     Platform.runLater(() -> {
@@ -2664,11 +2821,217 @@ public class ChatRoomController implements Initializable {
         }
     }
 
-    @Override
+    private void initializeGameManager() {
+        if (client != null) {
+            gameManager = new GameManager(client.getUsername());
+            Task<Boolean> connectTask = new Task<Boolean>() {
+                @Override
+                protected Boolean call() throws Exception {
+                    return gameManager.connectToGameServer();
+                }
+            };
+
+            connectTask.setOnSucceeded(e -> {
+                boolean connected = connectTask.getValue();
+                if (connected) {
+                    System.out.println("Connected to game server successfully");
+                    Platform.runLater(() -> {
+                        if (gameBtn != null) {
+                            gameBtn.setDisable(false);
+                            gameBtn.setText("⚔️ Challenge to Duel");
+                        }
+                    });
+                } else {
+                    System.out.println("Failed to connect to game server");
+                    Platform.runLater(() -> {
+                        if (gameBtn != null) {
+                            gameBtn.setDisable(true);
+                            gameBtn.setText("⚔️ Game Server Offline");
+                        }
+                    });
+                }
+            });
+
+            new Thread(connectTask).start();
+        }
+    }
+
+    private void createGameButton() {
+        if (gameBtn != null) {
+            return;
+        }
+        gameBtn = new Button("⚔️ Connecting...");
+        gameBtn.setDisable(true);
+        gameBtn.setPrefHeight(40.0);
+        gameBtn.setPrefWidth(50.0);
+        gameBtn.getStyleClass().add("call-btn"); // Use same style class as other buttons
+        gameBtn.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e);" +
+                        "-fx-text-fill: #ffd700;" +
+                        "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-font-size: 18px;" +
+                        "-fx-padding: 10;" +
+                        "-fx-background-radius: 25;" +
+                        "-fx-border-color: #6b5b73;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-radius: 25;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, #2d1b69, 6, 0.7, 2, 4);"
+        );
+
+        gameBtn.setOnMouseEntered(e -> {
+            if (!gameBtn.isDisabled()) {
+                gameBtn.setStyle(
+                        "-fx-background-color: linear-gradient(to bottom, #3d2c79, #2a2a3e);" +
+                                "-fx-text-fill: #ffffff;" +
+                                "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 18px;" +
+                                "-fx-padding: 10;" +
+                                "-fx-background-radius: 25;" +
+                                "-fx-border-color: #6b5b73;" +
+                                "-fx-border-width: 2;" +
+                                "-fx-border-radius: 25;" +
+                                "-fx-cursor: hand;" +
+                                "-fx-effect: dropshadow(gaussian, #3d2c79, 8, 0.8, 2, 4);"
+                );
+            }
+        });
+
+        gameBtn.setOnMouseExited(e -> {
+            if (!gameBtn.isDisabled()) {
+                gameBtn.setStyle(
+                        "-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e);" +
+                                "-fx-text-fill: #ffd700;" +
+                                "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 18px;" +
+                                "-fx-padding: 10;" +
+                                "-fx-background-radius: 25;" +
+                                "-fx-border-color: #6b5b73;" +
+                                "-fx-border-width: 2;" +
+                                "-fx-border-radius: 25;" +
+                                "-fx-cursor: hand;" +
+                                "-fx-effect: dropshadow(gaussian, #2d1b69, 6, 0.7, 2, 4);"
+                );
+            }
+        });
+
+        gameBtn.setOnAction(this::initiateGameChallenge);
+    }
+
+    private void initiateGameChallenge(ActionEvent event) {
+        Audios.playSound("spell");
+
+        if (currentReceiver == null) {
+            showGameAlert("No Opponent", "Please select a wizard to challenge first!");
+            return;
+        }
+
+        if (isGroupChatMode) {
+            showGameAlert("Invalid Challenge", "You can only challenge individual wizards, not groups!");
+            return;
+        }
+        if (gameManager == null || !gameManager.isConnected()) {
+            showGameAlert("Connection Error", "Not connected to the game server!");
+            return;
+        }
+        showGameTypeDialog();
+    }
+
+    private void showGameTypeDialog() {
+        Platform.runLater(() -> {
+            ChoiceDialog<String> dialog = new ChoiceDialog<>("3x3", "3x3", "4x4");
+            dialog.setTitle("⚔️ Choose Your Battlefield");
+            dialog.setHeaderText("🧙‍♂️ Select the size of your magical duel arena:");
+            dialog.setContentText("Arena Size:");
+            dialog.getDialogPane().setStyle(
+                    "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
+                            "-fx-border-color: #8b4513;" +
+                            "-fx-border-width: 3px;" +
+                            "-fx-border-radius: 15px;" +
+                            "-fx-background-radius: 15px;"
+            );
+            dialog.getDialogPane().lookup(".header-panel .label").setStyle(
+                    "-fx-text-fill: #ffd700;" +
+                            "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-font-size: 16px;"
+            );
+            dialog.getDialogPane().lookup(".content.label").setStyle(
+                    "-fx-text-fill: #e6ddd4;" +
+                            "-fx-font-family: 'Times New Roman', serif;" +
+                            "-fx-font-size: 14px;"
+            );
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(gameType -> {
+                gameManager.sendGameRequest(currentReceiver, gameType);
+                showGameAlert("Challenge Sent",
+                        "⚡ Challenge sent to " + currentReceiver + " for " + gameType + " TicTacToe!\n" +
+                                "Waiting for their response...");
+            });
+        });
+    }
+
+    private void showGameAlert(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.getDialogPane().setStyle(
+                    "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
+                            "-fx-border-color: #8b4513;" +
+                            "-fx-border-width: 3px;" +
+                            "-fx-border-radius: 15px;" +
+                            "-fx-background-radius: 15px;"
+            );
+
+            alert.getDialogPane().lookup(".content.label").setStyle(
+                    "-fx-text-fill: #e6ddd4;" +
+                            "-fx-font-family: 'Times New Roman', serif;" +
+                            "-fx-font-size: 14px;"
+            );
+
+            alert.showAndWait();
+        });
+    }
+
+    private void cleanupGameResources() {
+        if (gameManager != null) {
+            gameManager.disconnect();
+            gameManager = null;
+        }
+    }
+
+    private void addGameButtonToClientCard() {
+        if (gameBtn == null) {
+            createGameButton();
+        }
+        clientCard.getChildren().removeIf(node -> node == gameBtn);
+        int infoButtonIndex = clientCard.getChildren().indexOf(infobtn);
+        if (infoButtonIndex != -1) {
+            clientCard.getChildren().add(infoButtonIndex, gameBtn);
+        } else {
+            clientCard.getChildren().add(gameBtn);
+        }
+    }
+
+    private void removeGameButtonFromClientCard() {
+        if (gameBtn != null) {
+            clientCard.getChildren().remove(gameBtn);
+        }
+    }
+
+    @
+    Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeCallUI();
         createOutgoingCallUI();
         setupCreateGroupDialog();
+        createGameButton();
         msgbox.heightProperty().addListener((obs, oldVal, newVal) -> {
             chatScroll.setVvalue(1.0);
         });
@@ -2683,8 +3046,5 @@ public class ChatRoomController implements Initializable {
             }
         });
 //        Audios.playBGM();
-
     }
-
-
 }
