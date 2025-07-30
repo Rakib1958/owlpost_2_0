@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class GeminiApiClient {
     private static final String BASE_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
     private final String apiKey;
     private final OkHttpClient client;
     private long lastRequestTime = 0;
@@ -53,7 +53,7 @@ public class GeminiApiClient {
         );
 
         Request request = new Request.Builder()
-                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey)
+                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey)
                 .post(body)
                 .addHeader("Content-Type", "application/json")
                 .build();
