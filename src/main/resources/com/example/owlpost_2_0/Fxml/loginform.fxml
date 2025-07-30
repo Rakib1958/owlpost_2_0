@@ -267,6 +267,5 @@
                 </Button>
             </children>
         </Pane>
-      <Pane fx:id="effectpane" prefHeight="200.0" prefWidth="200.0" />
     </children>
 </StackPane>
