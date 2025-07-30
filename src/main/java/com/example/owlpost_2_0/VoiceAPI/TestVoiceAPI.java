@@ -7,6 +7,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.example.owlpost_2_0.VoiceAPI.recordAudio.record;
+
 public class TestVoiceAPI {
     public static String api = "";
     public static void getKey() {
@@ -61,10 +63,12 @@ public class TestVoiceAPI {
     }
 
     public static void main(String[] args) {
-        getKey();
-        AssemblyAI assemblyAI = AssemblyAI.builder().apiKey(api).build();
+
 
         try {
+            getKey();
+            record();
+            AssemblyAI assemblyAI = AssemblyAI.builder().apiKey(api).build();
             String url = uploadFile("recording.wav", api);
             System.out.println(url);
             Transcript transcript = assemblyAI.transcripts().transcribe(url);

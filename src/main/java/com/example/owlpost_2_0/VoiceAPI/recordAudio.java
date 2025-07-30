@@ -5,8 +5,7 @@ import java.io.File;
 import java.util.Scanner;
 
 public class recordAudio {
-
-    public static void main(String[] args) throws Exception {
+    public static void record() throws Exception{
         AudioFormat format = new AudioFormat(44100.0f, 16, 1, true, false);
         TargetDataLine microphone = AudioSystem.getTargetDataLine(format);
         microphone.open(format);
@@ -38,5 +37,12 @@ public class recordAudio {
         microphone.stop();
         microphone.close();
         System.out.println("Recording stopped..." + recording.getAbsolutePath());
+    }
+    public static void main(String[] args) {
+        try {
+            record();
+        }catch (Exception e) {
+            System.out.println(e);
+        }
     }
 }

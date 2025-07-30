@@ -1,5 +1,7 @@
 package com.example.owlpost_2_0.Controllers;
 
+import com.assemblyai.api.AssemblyAI;
+import com.assemblyai.api.resources.transcripts.types.Transcript;
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
 import com.example.owlpost_2_0.ChatRoom.GroupChat;
 import com.example.owlpost_2_0.ChatRoom.GroupMessage;
@@ -51,9 +53,11 @@ import netscape.javascript.JSObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.sound.sampled.*;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.example.owlpost_2_0.VoiceAPI.TestVoiceAPI.*;
 import static java.nio.file.Files.readAllBytes;
 
 public class ChatRoomController implements Initializable {
@@ -166,7 +170,13 @@ public class ChatRoomController implements Initializable {
     private ListView<String> availableUsersListView;
     private ListView<String> selectedMembersListView;
     private WebEngine webEngine;
+
+    // voice recognition
     private boolean recording = false;
+    TargetDataLine microphone;
+    Thread recordingThread;
+    AudioFormat format = new AudioFormat(44100.0f, 16, 1, true, false);
+    File audioFile = new File("recording.wav");
 
     private void initializeCallUI() {
         if (callOverlay == null) {
@@ -743,7 +753,7 @@ public class ChatRoomController implements Initializable {
     }
 
     private void showChatWithGemini(String content, boolean isClient) {
-        if (isClient){
+        if (isClient) {
             System.out.println("Client");
             HBox hBox = new HBox();
             hBox.setPadding(new Insets(3));
@@ -768,7 +778,7 @@ public class ChatRoomController implements Initializable {
             hBox.getChildren().add(label);
             geminibox.getChildren().add(hBox);
             geminiscrollpane.setVvalue(1.0);
-        }else {
+        } else {
             System.out.println("Gemini");
             HBox hBox = new HBox();
             hBox.setPadding(new Insets(3));
@@ -1196,7 +1206,7 @@ public class ChatRoomController implements Initializable {
                 filename.endsWith(".jpeg") || filename.endsWith(".gif");
     }
 
-    public void ButtonAction(ActionEvent event) {
+    public void ButtonAction(ActionEvent event) throws Exception{
         Audios.playSound("spell");
         Button btn = (Button) event.getSource();
 
@@ -1224,6 +1234,63 @@ public class ChatRoomController implements Initializable {
             emojipane_test.setVisible(true);
         } else if (btn.equals(closeEmojiPicker)) {
             emojipane_test.setVisible(false);
+        } else if (btn.equals(voiceToText)) {
+            if (!recording) {
+                startRecording();
+            } else {
+                stopRecordingAndTranscribe();
+            }
+        }
+    }
+
+    public void startRecording() {
+        try {
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            microphone = (TargetDataLine) AudioSystem.getLine(info);
+            microphone.open(format);
+            microphone.start();
+
+            AudioInputStream ais = new AudioInputStream(microphone);
+            recording = true;
+
+            recordingThread = new Thread(() -> {
+                try {
+                    AudioSystem.write(ais, AudioFileFormat.Type.WAVE, audioFile);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+            recordingThread.start();
+            System.out.println("Recording started...");
+
+        } catch (Exception e) {
+            System.out.println("Error starting recording: " + e);
+        }
+    }
+
+    public void stopRecordingAndTranscribe() {
+        try {
+            recording = false;
+            microphone.stop();
+            microphone.close();
+            recordingThread.join(); // ensure writing is finished
+
+            System.out.println("Recording stopped. Uploading...");
+            getKey();
+            System.out.println(api);
+
+            AssemblyAI assemblyAI = AssemblyAI.builder().apiKey(api).build();
+            String url = uploadFile(audioFile.getAbsolutePath(), api);
+            System.out.println("Audio URL: " + url);
+
+            Transcript transcript = assemblyAI.transcripts().transcribe(url);
+            System.out.println("Transcription: " + transcript.getText());
+
+            Platform.runLater(() -> msgField.appendText(String.valueOf(transcript.getText()).substring(9, String.valueOf(transcript.getText()).indexOf(']'))));
+
+        } catch (Exception e) {
+            System.out.println("Error stopping recording/transcribing: " + e);
         }
     }
 
