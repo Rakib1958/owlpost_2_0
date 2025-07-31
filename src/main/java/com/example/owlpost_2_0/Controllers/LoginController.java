@@ -644,6 +644,7 @@ public class LoginController implements Initializable {
         Animations.leftRight((sortingPane));
         Animations.leftRight((recoveryPane));
 
+        Animations.ScaleTransition(loginBtn);
     }
 
 }
