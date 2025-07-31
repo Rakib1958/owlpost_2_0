@@ -160,8 +160,6 @@ public class GameServer {
 
         System.out.println("Game ended: " + gameId);
     }
-
-    // Inner class for handling individual client connections
     public static class ClientHandler implements Runnable {
         private Socket socket;
         private PrintWriter out;
