@@ -58,6 +58,7 @@ import org.json.JSONObject;
 
 import javax.sound.sampled.*;
 
+import static com.example.owlpost_2_0.Resources.Animations.playTypewriterEffectLabel;
 import static com.example.owlpost_2_0.VoiceAPI.TestVoiceAPI.*;
 import static java.nio.file.Files.readAllBytes;
 
@@ -900,6 +901,7 @@ public class ChatRoomController implements Initializable {
             }
         }
     }
+
     private void handleIncomingMsg(ChatMessage msg) {
         if (msg.getSender().equals("SYSTEM")) {
             if (msg.getContent().startsWith("USER_ONLINE:") || msg.getContent().startsWith("USER_OFFLINE:")) {
@@ -3414,14 +3416,6 @@ public class ChatRoomController implements Initializable {
         }
 
         KeyFrame showLabel = new KeyFrame(Duration.seconds(2.0), e -> {
-//            Label owlPostLabel = new Label("OwlPost");
-//            owlPostLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 36));
-//            owlPostLabel.setTextFill(Color.WHITE);
-//            owlPostLabel.setLayoutX(600); // Top right corner-ish
-//            owlPostLabel.setLayoutY(40);
-//            owlPostLabel.setOpacity(0);
-//
-//            animationPane.getChildren().add(owlPostLabel);
             owltext.setVisible(true);
 
             FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.2), owltext);
@@ -3436,7 +3430,7 @@ public class ChatRoomController implements Initializable {
 
             ParallelTransition appear = new ParallelTransition(fadeIn, pop);
             appear.setOnFinished(ev -> {
-                playTypewriterEffect(privacytext, "Your privacy is our utmost concern", Duration.millis(40));
+                playTypewriterEffectLabel(privacytext, "Your privacy is our utmost concern", Duration.millis(40));
             });
             appear.play();
         });
@@ -3445,18 +3439,4 @@ public class ChatRoomController implements Initializable {
         timeline.play();
     }
 
-    private void playTypewriterEffect(Label label, String message, Duration delayPerChar) {
-        label.setVisible(true); // make sure it's visible
-        Timeline timeline = new Timeline();
-
-        for (int i = 0; i < message.length(); i++) {
-            final int index = i;
-            KeyFrame keyFrame = new KeyFrame(delayPerChar.multiply(i), e -> {
-                label.setText(message.substring(0, index + 1));
-            });
-            timeline.getKeyFrames().add(keyFrame);
-        }
-
-        timeline.play();
-    }
 }
