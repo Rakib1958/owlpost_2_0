@@ -18,180 +18,265 @@
 
 <AnchorPane prefHeight="720.0" prefWidth="1280.0" styleClass="anchor" stylesheets="@../Styles/chatstyle.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.owlpost_2_0.Controllers.ChatRoomController">
     <children>
-        <Pane fx:id="leftbase" prefHeight="720.0" prefWidth="319.0">
+        <!-- Left Panel -->
+        <Pane fx:id="leftbase" prefHeight="720.0" prefWidth="319.0" style="-fx-background-color: #364c52;">
             <children>
-
-                <HBox fx:id="userCard" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="327.0" spacing="10" styleClass="header-user">
-                    <ImageView fx:id="userImage" fitHeight="64" fitWidth="64">
+                <!-- User Header - Reduced Height -->
+                <HBox fx:id="userCard" alignment="CENTER_LEFT" prefHeight="70.0" prefWidth="319.0" spacing="15" styleClass="header-user">
+                    <padding>
+                        <Insets left="15.0" />
+                    </padding>
+                    <ImageView fx:id="userImage" fitHeight="50" fitWidth="50">
                         <clip>
-                            <Circle fx:id="userImageClip" centerX="32" centerY="32" radius="32" />
+                            <Circle fx:id="userImageClip" centerX="25" centerY="25" radius="25" />
                         </clip>
                     </ImageView>
-                    <Label fx:id="userIdLabel" text="john_doe" textFill="WHITE" />
+                    <Label fx:id="userIdLabel" text="john_doe" textFill="#f3f4d2">
+                        <font>
+                            <Font name="DM Sans" size="16.0" />
+                        </font>
+                    </Label>
                 </HBox>
-                <ScrollPane fx:id="leftpane" hbarPolicy="NEVER" layoutY="100.0" prefHeight="630.0" prefWidth="327.0" styleClass="left-scroll">
+
+                <!-- Friends List Scroll -->
+                <ScrollPane fx:id="leftpane" hbarPolicy="NEVER" vbarPolicy="NEVER" layoutY="70.0" prefHeight="650.0" prefWidth="319.0" styleClass="left-scroll">
                     <content>
                         <VBox fx:id="friendslist" styleClass="friends-list" />
                     </content>
                 </ScrollPane>
             </children>
         </Pane>
+
+        <!-- Right Sidebar -->
         <StackPane layoutX="926.0" prefHeight="720.0" prefWidth="354.0">
             <children>
-                <ImageView fitHeight="744.0" fitWidth="356.0" pickOnBounds="true">
+                <!-- Background Image -->
+                <ImageView fitHeight="720.0" fitWidth="354.0" pickOnBounds="true" preserveRatio="false">
                     <image>
                         <Image url="@../Images/LoginForm/sidebar.gif" />
                     </image>
                 </ImageView>
-                <Pane fx:id="geminiPane" prefHeight="200.0" prefWidth="200.0" visible="false">
+
+                <!-- Gemini Panel -->
+                <Pane fx:id="geminiPane" prefHeight="720.0" prefWidth="354.0" visible="false" style="-fx-background-color: rgba(18, 40, 56, 0.95);">
                     <children>
-                        <ScrollPane fx:id="geminiscrollpane" fitToWidth="true" hbarPolicy="NEVER" layoutY="100.0" prefHeight="569.0" prefWidth="356.0">
+                        <Label layoutX="20.0" layoutY="15.0" text="AI Assistant" textFill="#f3f4d2">
+                            <font>
+                                <Font name="DM Sans" size="24.0" />
+                            </font>
+                        </Label>
+
+                        <ScrollPane fx:id="geminiscrollpane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" layoutY="60.0" prefHeight="600.0" prefWidth="354.0">
                             <content>
-                                <VBox fx:id="geminibox" prefWidth="617.0" />
+                                <VBox fx:id="geminibox" prefWidth="354.0" spacing="8" />
                             </content>
                         </ScrollPane>
-                        <HBox layoutX="-8.0" layoutY="677.0" prefHeight="57.0" prefWidth="366.0">
+
+                        <HBox layoutX="10.0" layoutY="670.0" prefHeight="40.0" prefWidth="334.0" spacing="8">
                             <children>
-                                <TextField fx:id="geminimsg" prefHeight="46.0" prefWidth="297.0" promptText="Message" styleClass="text-fields" />
-                                <Button fx:id="geminisend" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="📤" textFill="WHITE">
+                                <TextField fx:id="geminimsg" prefHeight="40.0" prefWidth="280.0" promptText="Ask AI..." styleClass="text-fields" />
+                                <Button fx:id="geminisend" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="sending-btn" text="→">
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
-                                    <font>
-                                        <Font size="20.0" />
-                                    </font>
                                 </Button>
                             </children>
-                            <padding>
-                                <Insets left="10.0" top="10.0" />
-                            </padding>
                         </HBox>
-                  <Label layoutX="36.0" layoutY="7.0" text="Gemini" textFill="#f7f1f1">
-                     <font>
-                        <Font name="Papyrus" size="38.0" />
-                     </font>
-                  </Label>
                     </children>
                 </Pane>
-                <Pane fx:id="infoPane" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent;">
+
+                <!-- Info Panel -->
+                <Pane fx:id="infoPane" prefHeight="720.0" prefWidth="354.0" style="-fx-background-color: rgba(18, 40, 56, 0.95);">
                     <children>
-                        <ImageView fx:id="userImage1" fitHeight="94.0" fitWidth="99.0" layoutX="129.0" layoutY="75.0">
-                            <clip>
-                                <Circle fx:id="userImageClip1" centerX="32" centerY="32" radius="32" />
-                            </clip>
-                        </ImageView>
-                        <Button fx:id="changeDOBtn" layoutX="205.0" layoutY="149.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="47.0" style="-fx-background-color: transparent; -fx-text-fill: #c9b037; -fx-background-radius: 30; -fx-font-size: 16px;" text="🖼️" />
-                        <Label layoutX="27.0" layoutY="221.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" text="Wizard Name" textFill="#e6ddd4" />
-                        <Label fx:id="USERNAME" layoutX="27.0" layoutY="257.0" prefHeight="27.0" prefWidth="308.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" textFill="#b4b4b4" />
-                        <Label layoutX="27.0" layoutY="323.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif; -fx-font-weight: bold;" text="House Status" textFill="#e6ddd4" />
-                        <Button fx:id="createGroupBtn" layoutX="36.0" layoutY="29.0" mnemonicParsing="false" onAction="#createGroup" prefHeight="35.0" prefWidth="300.0" styleClass="create-group-btn" text="✨ Summon New Circle" textFill="#c9b037">
+                        <!-- Create Group Button -->
+                        <Button fx:id="createGroupBtn" layoutX="27.0" layoutY="20.0" mnemonicParsing="false" onAction="#createGroup" prefHeight="40.0" prefWidth="300.0" styleClass="create-group-btn" text="Summon Your Circle">
                             <font>
-                                <Font name="Cinzel Bold" size="12.0" />
+                                <Font name="DM Sans" size="14.0" />
                             </font>
                             <cursor>
                                 <Cursor fx:constant="HAND" />
                             </cursor>
                         </Button>
-                  <Button fx:id="geminiBTN" layoutX="14.0" layoutY="705.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="🤖">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </Button>
-                    </children></Pane>
+
+                        <!-- User Profile Section -->
+                        <ImageView fx:id="userImage1" fitHeight="80.0" fitWidth="80.0" layoutX="137.0" layoutY="80.0">
+                            <clip>
+                                <Circle fx:id="userImageClip1" centerX="40" centerY="40" radius="40" />
+                            </clip>
+                        </ImageView>
+
+                        <Button fx:id="changeDOBtn" layoutX="200.0" layoutY="140.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="30.0" prefWidth="30.0" style="-fx-background-color: #a0b9a5; -fx-background-radius: 15; -fx-border-width: 0;" text="📷">
+                            <font>
+                                <Font size="14.0" />
+                            </font>
+                        </Button>
+
+                        <Label layoutX="27.0" layoutY="200.0" text="Username" textFill="#f3f4d2">
+                            <font>
+                                <Font name="DM Sans" size="14.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="USERNAME" layoutX="27.0" layoutY="225.0" prefHeight="25.0" prefWidth="300.0" textFill="#a0b9a5">
+                            <font>
+                                <Font name="DM Sans" size="16.0" />
+                            </font>
+                        </Label>
+
+                        <Label layoutX="27.0" layoutY="270.0" text="Status" textFill="#f3f4d2">
+                            <font>
+                                <Font name="DM Sans" size="14.0" />
+                            </font>
+                        </Label>
+
+                        <!-- AI Button -->
+                        <Button fx:id="geminiBTN" layoutX="27.0" layoutY="660.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="AI" prefWidth="60" prefHeight="40">
+                            <cursor>
+                                <Cursor fx:constant="HAND" />
+                            </cursor>
+                            <font>
+                                <Font name="DM Sans" size="14.0" />
+                            </font>
+                        </Button>
+                    </children>
+                </Pane>
             </children>
         </StackPane>
-        <Pane layoutX="320.0" prefHeight="728.0" prefWidth="607.0">
+
+        <!-- Main Chat Area -->
+        <Pane layoutX="319.0" prefHeight="720.0" prefWidth="607.0" style="-fx-background-color: #122838;">
             <children>
-                <VBox fx:id="chatbody" prefHeight="728.0" prefWidth="607.0">
+                <VBox fx:id="chatbody" prefHeight="720.0" prefWidth="607.0">
                     <children>
-                        <Pane prefHeight="713.0" prefWidth="607.0">
+                        <Pane prefHeight="720.0" prefWidth="607.0">
                             <children>
-                                <ImageView fx:id="chatBG" fitHeight="569.0" fitWidth="607.0" layoutY="98.0" pickOnBounds="true" preserveRatio="true" />
-                                <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" layoutY="98.0" prefHeight="569.0" prefWidth="607.0">
+                                <!-- Chat Background - Updated to use your Hogwarts image -->
+                                <ImageView fx:id="chatBG" fitHeight="580.0" fitWidth="607.0" layoutY="70.0" pickOnBounds="true" preserveRatio="false">
+                                    <image>
+                                        <Image url="@../Images/hogwarts_background.jpg" />
+                                    </image>
+                                </ImageView>
+
+                                <!-- Chat Messages Scroll -->
+                                <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" layoutY="70.0" prefHeight="580.0" prefWidth="607.0">
                                     <content>
-                                        <VBox fx:id="msgbox" prefWidth="617.0" />
+                                        <VBox fx:id="msgbox" prefWidth="607.0" spacing="8" />
                                     </content>
                                 </ScrollPane>
-                                <StackPane fx:id="callOverlay" layoutY="98.0" prefHeight="569.0" prefWidth="607.0" style="-fx-background-color: rgba(0, 0, 0, 0.8);" visible="false" />
-                                <HBox fx:id="clientCard" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="607.0" spacing="10.0" styleClass="header-user">
+
+                                <!-- Call Overlay -->
+                                <StackPane fx:id="callOverlay" layoutY="70.0" prefHeight="580.0" prefWidth="607.0" style="-fx-background-color: rgba(0, 0, 0, 0.8);" visible="false" />
+
+                                <!-- Chat Header - Reduced Height with repositioned buttons -->
+                                <HBox fx:id="clientCard" alignment="CENTER_LEFT" prefHeight="70.0" prefWidth="607.0" spacing="15.0" styleClass="header-user">
+                                    <padding>
+                                        <Insets left="15.0" />
+                                    </padding>
                                     <children>
-                                        <ImageView fx:id="clientImage" fitHeight="64.0" fitWidth="64.0">
+                                        <ImageView fx:id="clientImage" fitHeight="50.0" fitWidth="50.0">
                                             <clip>
-                                                <Circle fx:id="clientImageClip" centerX="32" centerY="32" radius="32" />
+                                                <Circle fx:id="clientImageClip" centerX="25" centerY="25" radius="25" />
                                             </clip>
                                         </ImageView>
-                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="250.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" text="john_doe" textFill="#e6ddd4" />
-                                        <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" text="🗣️" textFill="#b8860b">
+                                        <Label fx:id="clientIdLabel" prefWidth="200.0" text="Select a chat" textFill="#f3f4d2">
                                             <font>
-                                                <Font size="20.0" />
+                                                <Font name="DM Sans" size="16.0" />
                                             </font>
-                                        </Button>
-                                        <Button fx:id="videocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" text="🔮" textFill="#b8860b">
-                                            <font>
-                                                <Font size="20.0" />
-                                            </font>
-                                        </Button>
-                                        <!-- Game button will be added dynamically here -->
-                                        <Button fx:id="infobtn" mnemonicParsing="false" onAction="#ButtonAction" styleClass="info-btn" text="📜" textFill="#9370db">
-                                            <font>
-                                                <Font size="18.0" />
-                                            </font>
-                                        </Button>
-                              <Button fx:id="voiceToText" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="43.0" prefWidth="54.0" styleClass="info-btn" text="🔊">
-                                 <cursor>
-                                    <Cursor fx:constant="HAND" />
-                                 </cursor>
-                                 <font>
-                                    <Font size="25.0" />
-                                 </font>
-                              </Button>
+                                        </Label>
+
+                                        <!-- Spacer to push buttons to the right -->
+                                        <Pane HBox.hgrow="ALWAYS" />
+
+                                        <!-- Action Buttons with Icons - Moved to far right -->
+                                        <HBox fx:id="headerButtonsBox" spacing="15" alignment="CENTER_RIGHT">
+                                            <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" prefHeight="40.0" prefWidth="40.0">
+                                                <font>
+                                                    <Font size="16.0" />
+                                                </font>
+                                            </Button>
+                                            <Button fx:id="videocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" prefHeight="40.0" prefWidth="40.0">
+                                                <font>
+                                                    <Font size="16.0" />
+                                                </font>
+                                            </Button>
+                                            <Button fx:id="infobtn" mnemonicParsing="false" onAction="#ButtonAction" styleClass="info-btn" prefHeight="40.0" prefWidth="40.0">
+                                                <font>
+                                                    <Font size="16.0" />
+                                                </font>
+                                            </Button>
+                                        </HBox>
                                     </children>
+                                    <padding>
+                                        <Insets left="15.0" right="15.0" />
+                                    </padding>
                                 </HBox>
                             </children>
                         </Pane>
-                        <HBox prefHeight="57.0" prefWidth="607.0" spacing="10.0">
+
+                        <!-- Message Input Area -->
+                        <HBox prefHeight="70.0" prefWidth="607.0" spacing="8.0" style="-fx-background-color: #364c52; -fx-padding: 15;">
                             <children>
-                                <Button fx:id="sendImg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="📸" textFill="#c9b037">
+                                <!-- Plus Button (instead of camera) -->
+                                <Button fx:id="sendImg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="sending-btn" text="+">
                                     <font>
-                                        <Font size="18.0" />
+                                        <Font name="DM Sans" size="20.0" />
                                     </font>
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
                                 </Button>
-                                <TextField fx:id="msgField" prefHeight="46.0" prefWidth="400.0" promptText="Cast your message..." styleClass="text-fields" />
-                                <Button fx:id="sendEmoji" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="sending-btn" text="😊" textFill="#c9b037">
+
+                                <!-- Message Text Field -->
+                                <TextField fx:id="msgField" prefHeight="40.0" prefWidth="400.0" promptText="Type a message..." styleClass="text-fields" />
+
+                                <!-- Voice to Text Button -->
+                                <Button fx:id="voiceToText" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="info-btn" text="🎤">
+                                    <cursor>
+                                        <Cursor fx:constant="HAND" />
+                                    </cursor>
                                     <font>
-                                        <Font size="18.0" />
+                                        <Font size="16.0" />
+                                    </font>
+                                </Button>
+
+                                <!-- Emoji Button -->
+                                <Button fx:id="sendEmoji" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="sending-btn" text="😊">
+                                    <font>
+                                        <Font size="16.0" />
                                     </font>
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
                                 </Button>
-                                <Button fx:id="sendMsg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="46.0" prefWidth="50.0" styleClass="send-msg" text="🪶" textFill="#c9b037">
+
+                                <!-- Send Button -->
+                                <Button fx:id="sendMsg" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="send-msg" text="→">
                                     <cursor>
                                         <Cursor fx:constant="HAND" />
                                     </cursor>
                                     <font>
-                                        <Font size="18.0" />
+                                        <Font name="DM Sans" size="18.0" />
                                     </font>
                                 </Button>
                             </children>
-                            <padding>
-                                <Insets left="10.0" top="10.0" />
-                            </padding>
                         </HBox>
-                    </children></VBox>
+                    </children>
+                </VBox>
             </children>
         </Pane>
-        <Pane fx:id="emojipane_test" prefHeight="744.0" prefWidth="1282.0" visible="false">
+
+        <!-- Emoji Picker Overlay -->
+        <Pane fx:id="emojipane_test" prefHeight="720.0" prefWidth="1280.0" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.5);">
             <children>
-                <ScrollPane fx:id="emojiscroller" hbarPolicy="NEVER" layoutX="682.0" layoutY="393.0" prefHeight="269.0" prefWidth="250.0" vbarPolicy="NEVER">
+                <ScrollPane fx:id="emojiscroller" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" layoutX="500.0" layoutY="300.0" prefHeight="300.0" prefWidth="280.0" style="-fx-background-color: #f3f4d2; -fx-background-radius: 12;">
                     <content>
-                        <VBox fx:id="emojibox" prefHeight="273.0" prefWidth="249.0" />
+                        <VBox fx:id="emojibox" prefHeight="300.0" prefWidth="280.0" style="-fx-background-color: #f3f4d2;" />
                     </content>
                 </ScrollPane>
-                <Button fx:id="closeEmojiPicker" layoutX="900.0" layoutY="344.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="39.0" prefWidth="30.0" text="-" />
+                <Button fx:id="closeEmojiPicker" layoutX="750.0" layoutY="270.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="30.0" prefWidth="30.0" style="-fx-background-color: #5e8581; -fx-text-fill: #f3f4d2; -fx-background-radius: 15;" text="×">
+                    <font>
+                        <Font name="DM Sans" size="16.0" />
+                    </font>
+                </Button>
             </children>
         </Pane>
     </children>

@@ -121,7 +121,6 @@ public class ChatRoomController implements Initializable {
     @FXML
     private ScrollPane emojiscroller;
 
-    // Gemini Resources
     @FXML
     private Button geminiBTN;
     @FXML
@@ -177,7 +176,6 @@ public class ChatRoomController implements Initializable {
     private ListView<String> availableUsersListView;
     private ListView<String> selectedMembersListView;
 
-    // voice recognition
     private boolean recording = false;
     TargetDataLine microphone;
     Thread recordingThread;
@@ -195,7 +193,7 @@ public class ChatRoomController implements Initializable {
         if (callOverlay == null) {
             callOverlay = new StackPane();
             callOverlay.setVisible(false);
-            callOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.8);");
+            callOverlay.setStyle("-fx-background-color: rgba(18, 40, 56, 0.8);");
             chatbody.getChildren().add(callOverlay);
         }
 
@@ -206,49 +204,74 @@ public class ChatRoomController implements Initializable {
     private void createIncomingCallUI() {
         incomingCallUI = new VBox(20);
         incomingCallUI.setAlignment(Pos.CENTER);
-        incomingCallUI.setStyle("-fx-background-color: rgba(26, 15, 8, 0.98); " +
+        incomingCallUI.setStyle("-fx-background-color: rgba(54, 76, 82, 0.98); " +
                 "-fx-background-radius: 20; " +
                 "-fx-padding: 30; " +
-                "-fx-border-color: #8b4513; " +
-                "-fx-border-width: 3; " +
-                "-fx-border-radius: 20; " +
-                "-fx-effect: dropshadow(gaussian, #000000, 15, 0.8, 0, 0);");
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 15, 0.8, 0, 0);");
         incomingCallUI.setMaxWidth(300);
         incomingCallUI.setMaxHeight(400);
 
         callerImageView = new ImageView();
         callerImageView.setFitWidth(100);
         callerImageView.setFitHeight(100);
+
         Label callerNameLabel = new Label("Incoming Call");
-        callerNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        callerNameLabel.setTextFill(Color.BLACK);
+        callerNameLabel.setFont(Font.font("DM Sans", FontWeight.BOLD, 18));
+        callerNameLabel.setTextFill(Color.web("#f3f4d2"));
 
         callStatusLabel = new Label("Audio Call");
-        callStatusLabel.setFont(Font.font("Arial", 14));
-        callStatusLabel.setTextFill(Color.GRAY);
+        callStatusLabel.setFont(Font.font("DM Sans", 14));
+        callStatusLabel.setTextFill(Color.web("#a0b9a5"));
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);
 
         acceptCallBtn = new Button("Accept");
-        acceptCallBtn.setStyle("-fx-background-color: #4CAF50; " +
-                "-fx-text-fill: white; " +
+        acceptCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 14px; " +
+                "-fx-font-family: 'DM Sans'; " +
                 "-fx-padding: 10 20; " +
                 "-fx-background-radius: 25; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
         acceptCallBtn.setOnAction(this::acceptCall);
+        acceptCallBtn.setOnMouseEntered(e -> acceptCallBtn.setStyle(acceptCallBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #5e8581, #a0b9a5);"));
+        acceptCallBtn.setOnMouseExited(e -> acceptCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 14px; " +
+                "-fx-font-family: 'DM Sans'; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 25; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);"));
 
         rejectCallBtn = new Button("Reject");
-        rejectCallBtn.setStyle("-fx-background-color: #f44336; " +
-                "-fx-text-fill: white; " +
+        rejectCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 14px; " +
+                "-fx-font-family: 'DM Sans'; " +
                 "-fx-padding: 10 20; " +
                 "-fx-background-radius: 25; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
         rejectCallBtn.setOnAction(this::rejectCall);
+        rejectCallBtn.setOnMouseEntered(e -> rejectCallBtn.setStyle(rejectCallBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #364c52, #122838); " +
+                "-fx-text-fill: #a0b9a5;"));
+        rejectCallBtn.setOnMouseExited(e -> rejectCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 14px; " +
+                "-fx-font-family: 'DM Sans'; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 25; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);"));
 
         buttonBox.getChildren().addAll(acceptCallBtn, rejectCallBtn);
 
@@ -260,15 +283,16 @@ public class ChatRoomController implements Initializable {
     private void createActiveCallUI() {
         activeCallUI = new VBox(15);
         activeCallUI.setAlignment(Pos.CENTER);
-        activeCallUI.setStyle("-fx-background-color: rgba(50, 50, 50, 0.95); " +
+        activeCallUI.setStyle("-fx-background-color: rgba(54, 76, 82, 0.95); " +
                 "-fx-background-radius: 20; " +
-                "-fx-padding: 20;");
+                "-fx-padding: 20; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 10, 0.5, 0, 3);");
         activeCallUI.setMaxWidth(400);
         activeCallUI.setMaxHeight(500);
 
         callDurationLabel = new Label("00:00");
-        callDurationLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        callDurationLabel.setTextFill(Color.WHITE);
+        callDurationLabel.setFont(Font.font("DM Sans", FontWeight.BOLD, 20));
+        callDurationLabel.setTextFill(Color.web("#f3f4d2"));
 
         VBox videoContainer = new VBox(10);
         videoContainer.setAlignment(Pos.CENTER);
@@ -276,15 +300,17 @@ public class ChatRoomController implements Initializable {
         remoteVideoView = new ImageView();
         remoteVideoView.setFitWidth(300);
         remoteVideoView.setFitHeight(200);
-        remoteVideoView.setStyle("-fx-background-color: black; " +
-                "-fx-background-radius: 10;");
+        remoteVideoView.setStyle("-fx-background-color: #122838; " +
+                "-fx-background-radius: 10; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0.3, 0, 2);");
         remoteVideoView.setVisible(false);
 
         localVideoView = new ImageView();
         localVideoView.setFitWidth(100);
         localVideoView.setFitHeight(75);
-        localVideoView.setStyle("-fx-background-color: #333; " +
-                "-fx-background-radius: 8;");
+        localVideoView.setStyle("-fx-background-color: #364c52; " +
+                "-fx-background-radius: 8; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0.3, 0, 1);");
         localVideoView.setVisible(false);
 
         videoContainer.getChildren().addAll(remoteVideoView, localVideoView);
@@ -293,38 +319,75 @@ public class ChatRoomController implements Initializable {
         controlsBox.setAlignment(Pos.CENTER);
 
         muteBtn = new Button("🔊");
-        muteBtn.setStyle("-fx-background-color: #666; " +
-                "-fx-text-fill: white; " +
+        muteBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-size: 20px; " +
                 "-fx-padding: 10; " +
                 "-fx-background-radius: 25; " +
                 "-fx-min-width: 50px; " +
                 "-fx-min-height: 50px; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
         muteBtn.setOnAction(this::toggleMute);
+        muteBtn.setOnMouseEntered(e -> muteBtn.setStyle(muteBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581);"));
+        muteBtn.setOnMouseExited(e -> muteBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-size: 20px; " +
+                "-fx-padding: 10; " +
+                "-fx-background-radius: 25; " +
+                "-fx-min-width: 50px; " +
+                "-fx-min-height: 50px; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);"));
 
         videoToggleBtn = new Button("📹");
-        videoToggleBtn.setStyle("-fx-background-color: #666; " +
-                "-fx-text-fill: white; " +
+        videoToggleBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-size: 20px; " +
                 "-fx-padding: 10; " +
                 "-fx-background-radius: 25; " +
                 "-fx-min-width: 50px; " +
                 "-fx-min-height: 50px; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
         videoToggleBtn.setOnAction(this::toggleVideo);
         videoToggleBtn.setVisible(false);
-
-        endCallBtn = new Button("📞");
-        endCallBtn.setStyle("-fx-background-color: #f44336; " +
-                "-fx-text-fill: white; " +
+        videoToggleBtn.setOnMouseEntered(e -> videoToggleBtn.setStyle(videoToggleBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581);"));
+        videoToggleBtn.setOnMouseExited(e -> videoToggleBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-size: 20px; " +
                 "-fx-padding: 10; " +
                 "-fx-background-radius: 25; " +
                 "-fx-min-width: 50px; " +
                 "-fx-min-height: 50px; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);"));
+
+        endCallBtn = new Button("📞");
+        endCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-size: 20px; " +
+                "-fx-padding: 10; " +
+                "-fx-background-radius: 25; " +
+                "-fx-min-width: 50px; " +
+                "-fx-min-height: 50px; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
         endCallBtn.setOnAction(this::endCall);
+        endCallBtn.setOnMouseEntered(e -> endCallBtn.setStyle(endCallBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #364c52, #122838); " +
+                "-fx-text-fill: #a0b9a5;"));
+        endCallBtn.setOnMouseExited(e -> endCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-size: 20px; " +
+                "-fx-padding: 10; " +
+                "-fx-background-radius: 25; " +
+                "-fx-min-width: 50px; " +
+                "-fx-min-height: 50px; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);"));
 
         controlsBox.getChildren().addAll(muteBtn, videoToggleBtn, endCallBtn);
 
@@ -336,35 +399,49 @@ public class ChatRoomController implements Initializable {
     private void createOutgoingCallUI() {
         VBox outgoingCallUI = new VBox(20);
         outgoingCallUI.setAlignment(Pos.CENTER);
-        outgoingCallUI.setStyle("-fx-background-color: rgba(255, 255, 255, 0.95); " +
+        outgoingCallUI.setStyle("-fx-background-color: rgba(54, 76, 82, 0.95); " +
                 "-fx-background-radius: 20; " +
                 "-fx-padding: 30; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);");
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 10, 0.5, 0, 3);");
         outgoingCallUI.setMaxWidth(300);
         outgoingCallUI.setMaxHeight(400);
 
         ImageView receiverImageView = new ImageView();
         receiverImageView.setFitWidth(100);
         receiverImageView.setFitHeight(100);
-        Circle receiverClip = new Circle(50);
-        receiverImageView.setClip(receiverClip);
+//        Circle receiverClip = new Circle(50);
+//        receiverImageView.setClip(receiverClip);
 
         Label receiverNameLabel = new Label("Calling...");
-        receiverNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        receiverNameLabel.setTextFill(Color.BLACK);
+        receiverNameLabel.setFont(Font.font("DM Sans", FontWeight.BOLD, 18));
+        receiverNameLabel.setTextFill(Color.web("#f3f4d2"));
 
         Label outgoingCallStatus = new Label("Connecting...");
-        outgoingCallStatus.setFont(Font.font("Arial", 14));
-        outgoingCallStatus.setTextFill(Color.GRAY);
+        outgoingCallStatus.setFont(Font.font("DM Sans", 14));
+        outgoingCallStatus.setTextFill(Color.web("#a0b9a5"));
 
         Button cancelCallBtn = new Button("Cancel");
-        cancelCallBtn.setStyle("-fx-background-color: #f44336; " +
-                "-fx-text-fill: white; " +
+        cancelCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 14px; " +
+                "-fx-font-family: 'DM Sans'; " +
                 "-fx-padding: 10 20; " +
                 "-fx-background-radius: 25; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
+        cancelCallBtn.setOnMouseEntered(e -> cancelCallBtn.setStyle(cancelCallBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #364c52, #122838); " +
+                "-fx-text-fill: #a0b9a5;"));
+        cancelCallBtn.setOnMouseExited(e -> cancelCallBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 14px; " +
+                "-fx-font-family: 'DM Sans'; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 25; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);"));
         cancelCallBtn.setOnAction(e -> {
             try {
                 ChatMessage cancelMsg = new ChatMessage(client.getUsername(), currentReceiver, "CALL_CANCELLED");
@@ -561,14 +638,28 @@ public class ChatRoomController implements Initializable {
         isMuted = !isMuted;
         ClientUDP.setMuted(isMuted);
         muteBtn.setText(isMuted ? "🔇" : "🔊");
-        muteBtn.setStyle("-fx-background-color: " + (isMuted ? "#f44336" : "#666") + "; " +
-                "-fx-text-fill: white; " +
-                "-fx-font-size: 20px; " +
-                "-fx-padding: 10; " +
-                "-fx-background-radius: 25; " +
-                "-fx-min-width: 50px; " +
-                "-fx-min-height: 50px; " +
-                "-fx-cursor: hand;");
+
+        if (isMuted) {
+            muteBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-size: 20px; " +
+                    "-fx-padding: 10; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-min-width: 50px; " +
+                    "-fx-min-height: 50px; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
+        } else {
+            muteBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-size: 20px; " +
+                    "-fx-padding: 10; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-min-width: 50px; " +
+                    "-fx-min-height: 50px; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
+        }
     }
 
     private void startAudioCall() {
@@ -611,14 +702,28 @@ public class ChatRoomController implements Initializable {
     private void toggleVideo(ActionEvent event) {
         isVideoEnabled = !isVideoEnabled;
         videoToggleBtn.setText(isVideoEnabled ? "📹" : "📷");
-        videoToggleBtn.setStyle("-fx-background-color: " + (isVideoEnabled ? "#666" : "#f44336") + "; " +
-                "-fx-text-fill: white; " +
-                "-fx-font-size: 20px; " +
-                "-fx-padding: 10; " +
-                "-fx-background-radius: 25; " +
-                "-fx-min-width: 50px; " +
-                "-fx-min-height: 50px; " +
-                "-fx-cursor: hand;");
+
+        if (isVideoEnabled) {
+            videoToggleBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-size: 20px; " +
+                    "-fx-padding: 10; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-min-width: 50px; " +
+                    "-fx-min-height: 50px; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
+        } else {
+            videoToggleBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-size: 20px; " +
+                    "-fx-padding: 10; " +
+                    "-fx-background-radius: 25; " +
+                    "-fx-min-width: 50px; " +
+                    "-fx-min-height: 50px; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
+        }
 
         if (isVideoEnabled) {
             if (!VideoSender.isRunning()) {
@@ -661,14 +766,15 @@ public class ChatRoomController implements Initializable {
         callDurationSeconds = 0;
         stopAllCallComponents();
         muteBtn.setText("🔊");
-        muteBtn.setStyle("-fx-background-color: #666; " +
-                "-fx-text-fill: white; " +
+        muteBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-size: 20px; " +
                 "-fx-padding: 10; " +
                 "-fx-background-radius: 25; " +
                 "-fx-min-width: 50px; " +
                 "-fx-min-height: 50px; " +
-                "-fx-cursor: hand;");
+                "-fx-cursor: hand; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0.3, 0, 2);");
 
         videoToggleBtn.setText("📹");
         callDurationLabel.setText("00:00");
@@ -764,59 +870,77 @@ public class ChatRoomController implements Initializable {
     }
 
     private void showChatWithGemini(String content, boolean isClient) {
+        HBox hBox = new HBox();
+        hBox.setPadding(new Insets(3));
+        hBox.setAlignment(isClient ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+        Label label = new Label(content);
+        label.setWrapText(true);
+        label.maxWidthProperty().bind(geminiscrollpane.widthProperty().multiply(0.7));
+        label.setMaxHeight(Double.MAX_VALUE);
+        label.setPadding(new Insets(12, 16, 12, 16));
+        label.setFont(Font.font("DM Sans", 14));
+
         if (isClient) {
-            System.out.println("Client");
-            HBox hBox = new HBox();
-            hBox.setPadding(new Insets(3));
-            hBox.setAlignment(Pos.CENTER_RIGHT);
-
-            Label label = new Label(content);
-            label.setWrapText(true);
-            label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
-            label.setMaxHeight(Double.MAX_VALUE);
-            label.setPadding(new Insets(12));
-            label.setFont(Font.font("Segoe UI Emoji", 12));
-            label.setTextFill(Color.BLACK);
-            label.setStyle("-fx-background-color: #128C7E; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
-                    "-fx-padding: 12; " +
+            label.setStyle("-fx-background-color: #5e8581; " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 14px; " +
                     "-fx-background-radius: 18; " +
-                    "-fx-border-radius: 18; " +
-                    "-fx-border-color: rgba(255,255,255,0.3); " +
-                    "-fx-border-width: 2;");
-            hBox.getChildren().add(label);
-            geminibox.getChildren().add(hBox);
-            geminiscrollpane.setVvalue(1.0);
+                    "-fx-border-width: 0; " +
+                    "-fx-effect: none;");
         } else {
-            System.out.println("Gemini");
-            HBox hBox = new HBox();
-            hBox.setPadding(new Insets(3));
-            hBox.setAlignment(Pos.CENTER_LEFT);
-
-            Label label = new Label(content);
-            label.setWrapText(true);
-            label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
-            label.setMaxHeight(Double.MAX_VALUE);
-            label.setPadding(new Insets(12));
-            label.setFont(Font.font("Segoe UI Emoji", 12));
-            label.setTextFill(Color.BLACK);
-            label.setStyle("-fx-background-color: white; " +
-                    "-fx-text-fill: #2c3e50; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 2, 2); " +
-                    "-fx-padding: 12; " +
+            label.setStyle("-fx-background-color: #a0b9a5; " +
+                    "-fx-text-fill: #122838; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 14px; " +
                     "-fx-background-radius: 18; " +
-                    "-fx-border-radius: 18; " +
-                    "-fx-border-color: #34495e; " +
-                    "-fx-border-width: 2;");
-            hBox.getChildren().add(label);
-            geminibox.getChildren().add(hBox);
-            geminiscrollpane.setVvalue(1.0);
+                    "-fx-border-width: 0; " +
+                    "-fx-effect: none;");
         }
+
+        hBox.getChildren().add(label);
+        geminibox.getChildren().add(hBox);
+        geminiscrollpane.setVvalue(1.0);
     }
 
+    private void initializeIconButtons() {
+        setupIconButton(audiocall, "/com/example/owlpost_2_0/Images/Icons/call.png", "call-btn");
+        setupIconButton(videocall, "/com/example/owlpost_2_0/Images/Icons/video.png", "call-btn");
+        //setupIconButton(gameBtn, "/Images/icons/game.png", "call-btn");
+        setupIconButton(infobtn, "/com/example/owlpost_2_0/Images/Icons/info.png", "info-btn");
+    }
+
+    private void setupIconButton(Button button, String iconPath, String styleClass) {
+        try {
+            ImageView icon = new ImageView(new Image(getClass().getResourceAsStream(iconPath)));
+            icon.setFitWidth(35);
+            icon.setFitHeight(35);
+            button.setGraphic(icon);
+            button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            button.setAlignment(Pos.CENTER);
+            button.setText("");
+        } catch (Exception e) {
+            switch (button.getId()) {
+                case "audiocall":
+                    button.setText("📞");
+                    break;
+                case "videocall":
+                    button.setText("📹");
+                    break;
+                case "gameBtn":
+                    button.setText("🎮");
+                    break;
+                case "infobtn":
+                    button.setText("ℹ");
+                    break;
+            }
+        }
+        button.getStyleClass().clear();
+        button.getStyleClass().add(styleClass);
+        button.setPrefWidth(40);
+        button.setPrefHeight(40);
+    }
     @FXML
     private void onSendFile() {
         if(isGroupChatMode){
@@ -860,7 +984,7 @@ public class ChatRoomController implements Initializable {
 
                 if (nameLabel.getText().equals(username)) {
                     Label statusLabel = (Label) userInfo.getChildren().get(1);
-                    Circle indicator = (Circle) card.getChildren().get(2);
+                    Circle indicator = (Circle) card.getChildren().get(3);
 
                     if (isOnline) {
                         statusLabel.setText("Online");
@@ -1220,71 +1344,96 @@ public class ChatRoomController implements Initializable {
     private Node buildTextBubble(ChatMessage msg) {
         Label label = new Label(msg.getContent());
         label.setWrapText(true);
-        label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
+        label.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.7));
         label.setMaxHeight(Double.MAX_VALUE);
-        label.setPadding(new Insets(15));
+        label.setPadding(new Insets(12, 16, 12, 16));
+        label.setFont(Font.font("DM Sans", 14));
+
         if (msg.getSender().equals(client.getUsername())) {
-            label.setStyle("-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e); " +
-                    "-fx-text-fill: #ffd700; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
-                    "-fx-effect: dropshadow(gaussian, #2d1b69, 8, 0.7, 2, 4); " +
-                    "-fx-padding: 15; " +
-                    "-fx-background-radius: 25; " +
-                    "-fx-border-radius: 25; " +
-                    "-fx-border-color: #6b5b73; " +
-                    "-fx-border-width: 2;");
+            label.setStyle("-fx-background-color: #f3f4d2; " +
+                    "-fx-text-fill: #122838; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 12 16 12 16; " +
+                    "-fx-background-radius: 18; " +
+                    "-fx-effect: none; " +
+                    "-fx-border-width: 0;");
         } else {
-            label.setStyle("-fx-background-color: linear-gradient(to bottom, #3d2d5d, #2a1f3d); " +
-                    "-fx-text-fill: #e6ddd4; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
-                    "-fx-effect: dropshadow(gaussian, #1a1a2e, 6, 0.6, 3, 4); " +
-                    "-fx-padding: 15; " +
-                    "-fx-background-radius: 25; " +
-                    "-fx-border-radius: 25; " +
-                    "-fx-border-color: #6b5b73; " +
-                    "-fx-border-width: 2;");
+            label.setStyle("-fx-background-color: #364c52; " +
+                    "-fx-text-fill: #ffffff; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 12 16 12 16; " +
+                    "-fx-background-radius: 18; " +
+                    "-fx-effect: none; " +
+                    "-fx-border-width: 0;");
         }
         return label;
     }
 
     private Node buildFileBubble(ChatMessage msg) {
-        Button downloadBtn = new Button("Download " + msg.getFileName());
-        downloadBtn.setStyle("-fx-background-color: #3498db; " +
-                "-fx-text-fill: white; " +
-                "-fx-font-weight: bold; " +
+        Button downloadBtn = new Button("📎 " + msg.getFileName());
+        downloadBtn.setFont(Font.font("DM Sans", 12));
+        downloadBtn.setStyle("-fx-background-color: #364c52; " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-family: 'DM Sans', sans-serif; " +
                 "-fx-font-size: 12px; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
                 "-fx-padding: 10 15; " +
                 "-fx-background-radius: 15; " +
-                "-fx-border-radius: 15; " +
-                "-fx-border-color: #2980b9; " +
-                "-fx-border-width: 2; " +
-                "-fx-cursor: hand;");
+                "-fx-border-width: 0; " +
+                "-fx-cursor: hand; " +
+                "-fx-effect: none;");
+
+        downloadBtn.setOnMouseEntered(e -> {
+            downloadBtn.setStyle("-fx-background-color: #5e8581; " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-padding: 10 15; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-border-width: 0; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: none;");
+        });
+
+        downloadBtn.setOnMouseExited(e -> {
+            downloadBtn.setStyle("-fx-background-color: #364c52; " +
+                    "-fx-text-fill: #f3f4d2; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 12px; " +
+                    "-fx-padding: 10 15; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-border-width: 0; " +
+                    "-fx-cursor: hand; " +
+                    "-fx-effect: none;");
+        });
 
         downloadBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Save file");
             chooser.setInitialFileName(msg.getFileName());
-            File savelocation = chooser.showSaveDialog(null);
-            if (savelocation != null) {
+            File saveLocation = chooser.showSaveDialog(null);
+            if (saveLocation != null) {
                 try {
-                    java.nio.file.Files.write(savelocation.toPath(), msg.getFileData());
+                    java.nio.file.Files.write(saveLocation.toPath(), msg.getFileData());
+                    showAlert("Success", "File saved successfully!");
                 } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
+                    System.out.println("Error saving file: " + ex.getMessage());
+                    showAlert("Error", "Failed to save file: " + ex.getMessage());
                 }
             }
         });
         return downloadBtn;
     }
 
+
     private Node buildImageBubble(ChatMessage msg) {
         Image img = new Image(new java.io.ByteArrayInputStream(msg.getFileData()));
         ImageView imageView = new ImageView(img);
         imageView.setFitWidth(200);
         imageView.setPreserveRatio(true);
-
+        imageView.setStyle("-fx-background-radius: 12; " +
+                    "-fx-effect: none;");
         imageView.setOnMouseClicked(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save image");
@@ -1462,28 +1611,19 @@ public class ChatRoomController implements Initializable {
     }
 
     private void setupBackgroundAndUI() {
-        ImageView backgroundImageView = new ImageView();
-        backgroundImageView.setImage(new Image(getClass().getResource("/com/example/owlpost_2_0/Images/LoginForm/slytherin.gif").toExternalForm()));
-        backgroundImageView.setFitWidth(319);
-        backgroundImageView.setFitHeight(630);
-        backgroundImageView.setLayoutY(100);
-        backgroundImageView.setPreserveRatio(false);
-
-        leftbase.getChildren().add(0, backgroundImageView);
-        leftpane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-radius: 10; -fx-padding: 10;" +
-                "-fx-background-radius: 15; " +
-                "-fx-border-color: #8b4513; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 15; " +
-                "-fx-padding: 15;");
-
-        friendslist.setStyle("-fx-background-color: linear-gradient(to bottom, rgba(44, 24, 16, 0.8), rgba(26, 15, 8, 0.9)); -fx-background: transparent; " +
-                "-fx-background-radius: 12; " +
-                "-fx-border-color: #8b4513; " +
-                "-fx-border-width: 1; " +
-                "-fx-border-radius: 12; " +
+        leftbase.setStyle("-fx-background-color: #122838;");
+        leftpane.setStyle("-fx-background-color: transparent; " +
+                "-fx-background: transparent; " +
+                "-fx-border-width: 0; " +
+                "-fx-background-radius: 0; " +
+                "-fx-padding: 0;");
+        friendslist.setStyle("-fx-background-color: transparent; " +
+                "-fx-border-width: 0; " +
+                "-fx-background-radius: 0; " +
                 "-fx-padding: 12; " +
-                "-fx-effect: innershadow(gaussian, #000000, 8, 0.4, 0, 0);");
+                "-fx-effect: none;");
+        userCard.setPrefHeight(70);
+
         UpdateBG();
         setUpBackgroundTimer();
     }
@@ -1529,7 +1669,7 @@ public class ChatRoomController implements Initializable {
         separator.setStyle("-fx-background-color: rgba(255,255,255,0.3);");
         friendslist.getChildren().add(separator);
         Label groupsLabel = new Label("Groups");
-        groupsLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 10 0;");
+        groupsLabel.setStyle("-fx-text-fill: #f3f4d2; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 10 0;");
         friendslist.getChildren().add(groupsLabel);
         loadGroupsForFriendsList();
     }
@@ -1588,12 +1728,15 @@ public class ChatRoomController implements Initializable {
         img.setImage(loadDefaultGroupImage());
         VBox groupInfo = new VBox(2);
         Label name = new Label(group.getGroupName());
-        name.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        name.setStyle("-fx-text-fill: #f3f4d2; -fx-font-weight: bold; -fx-font-size: 14px; -fx-font-family: 'DM Sans';");
+
         Label memberCount = new Label(group.getMemberCount() + " members");
-        memberCount.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 12px;");
+        memberCount.setStyle("-fx-text-fill: #a0b9a5; -fx-font-size: 12px; -fx-font-family: 'DM Sans';");
+
         groupInfo.getChildren().addAll(name, memberCount);
         Circle groupIndicator = new Circle(6);
-        groupIndicator.setFill(Color.web("#FF9800"));
+        groupIndicator.setFill(Color.web("#5e8581"));
+
         card.getChildren().addAll(img, groupInfo, groupIndicator);
         card.setOnMouseClicked(e -> {
             switchToGroupChat(group);
@@ -1608,15 +1751,16 @@ public class ChatRoomController implements Initializable {
             for (Node node : friendslist.getChildren()) {
                 if (node instanceof HBox) {
                     HBox card = (HBox) node;
-                    card.setStyle("-fx-background-color: rgba(255,255,255,0.1); " +
+                    card.setStyle("-fx-background-color: rgba(54, 76, 82, 0.3); " +
                             "-fx-background-radius: 10; " +
                             "-fx-cursor: hand;");
                 }
             }
             if (selectedCard != null) {
-                selectedCard.setStyle("-fx-background-color: rgba(255,255,255,0.3); " +
+                selectedCard.setStyle("-fx-background-color: rgba(160, 185, 165, 0.4); " +
                         "-fx-background-radius: 10; " +
-                        "-fx-cursor: hand;");
+                        "-fx-cursor: hand; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0.3, 0, 2);");
             }
         } catch (Exception e) {
             System.err.println("Error updating card selection: " + e.getMessage());
@@ -1626,26 +1770,22 @@ public class ChatRoomController implements Initializable {
     private void styleGroupCard(HBox card) {
         card.setOnMouseEntered(e -> {
             if (!isCardCurrentlySelected(card)) {
-                card.setStyle("-fx-background-color: rgba(44, 24, 16, 0.8); " +
+                card.setStyle("-fx-background-color: rgba(94, 133, 129, 0.5); " +
                         "-fx-background-radius: 12; " +
                         "-fx-cursor: hand; " +
-                        "-fx-border-color: #d4af37; " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 12; " +
-                        "-fx-effect: dropshadow(gaussian, #d4af37, 8, 0.6, 0, 0);");
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 6, 0.4, 0, 2);");
             }
         });
         card.setOnMouseExited(e -> {
             if (!isCardCurrentlySelected(card)) {
-                card.setStyle("-fx-background-color: rgba(13, 7, 7, 0.6); " +
+                card.setStyle("-fx-background-color: rgba(54, 76, 82, 0.3); " +
                         "-fx-background-radius: 12; " +
-                        "-fx-cursor: hand; " +
-                        "-fx-border-color: rgba(139, 69, 19, 0.5); " +
-                        "-fx-border-width: 1; " +
-                        "-fx-border-radius: 12;");
+                        "-fx-cursor: hand;");
             }
         });
     }
+
+
     private boolean isCardCurrentlySelected(HBox card) {
         try {
             if (!isGroupChatMode || card.getChildren().size() < 2) {
@@ -1693,60 +1833,56 @@ public class ChatRoomController implements Initializable {
 
     private Node buildSystemMessageForMainChat(GroupMessage msg) {
         Label systemLabel = new Label(msg.getContent());
-        systemLabel.setStyle("-fx-text-fill: #ffffff; " +
+        systemLabel.setStyle("-fx-text-fill: #f3f4d2; " +
                 "-fx-font-style: italic; " +
                 "-fx-font-size: 14px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-background-color: rgba(50, 50, 50, 0.9); " +
+                "-fx-font-family: 'DM Sans'; " +
+                "-fx-background-color: rgba(18, 40, 56, 0.8); " +
                 "-fx-background-radius: 15; " +
                 "-fx-padding: 12 16; " +
-                "-fx-border-color: rgba(255, 255, 255, 0.3); " +
-                "-fx-border-width: 1; " +
-                "-fx-border-radius: 15; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0.5, 2, 2);");
         systemLabel.setWrapText(true);
         return systemLabel;
     }
 
     private Node buildGroupTextForMainChat(GroupMessage msg) {
-        VBox bubble = new VBox(5);
-        bubble.setPadding(new Insets(12));
-        bubble.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
+        VBox bubble = new VBox(3);
+        bubble.setPadding(new Insets(12, 16, 12, 16));
+        bubble.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.7));
+
         Label contentLabel = new Label(msg.getContent());
         contentLabel.setWrapText(true);
+        contentLabel.setFont(Font.font("DM Sans", 14));
         contentLabel.setStyle("-fx-text-fill: " +
-                (msg.getSenderUsername().equals(client.getUsername()) ? "#ffd700" : "white") +
-                "; -fx-font-weight: bold;");
+                (msg.getSenderUsername().equals(client.getUsername()) ? "#122838" : "#ffffff") +
+                "; -fx-font-family: 'DM Sans', sans-serif; -fx-font-size: 14px;");
 
         Label timeLabel = new Label(msg.getFormattedTimestamp());
+        timeLabel.setFont(Font.font("DM Sans", 10));
         timeLabel.setStyle("-fx-text-fill: " +
-                (msg.getSenderUsername().equals(client.getUsername()) ? "#cccccc" : "#666666") +
-                "; -fx-font-size: 10px;");
+                (msg.getSenderUsername().equals(client.getUsername()) ? "#122838" : "#ffffff") +
+                "; -fx-font-size: 10px; -fx-font-family: 'DM Sans', sans-serif;");
 
         bubble.getChildren().addAll(contentLabel, timeLabel);
 
         if (msg.getSenderUsername().equals(client.getUsername())) {
-            bubble.setStyle("-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e); " +
-                    "-fx-text-fill: #ffd700; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
-                    "-fx-effect: dropshadow(gaussian, #2d1b69, 8, 0.7, 2, 4); " +
-                    "-fx-padding: 15; " +
-                    "-fx-background-radius: 25; " +
-                    "-fx-border-radius: 25; " +
-                    "-fx-border-color: #6b5b73; " +
-                    "-fx-border-width: 2;");
+            bubble.setStyle("-fx-background-color: #f3f4d2; " +
+                    "-fx-text-fill: #122838; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 12 16 12 16; " +
+                    "-fx-background-radius: 18; " +
+                    "-fx-effect: none; " +
+                    "-fx-border-width: 0;");
         } else {
-            bubble.setStyle("-fx-background-color: linear-gradient(to bottom, #3d2d5d, #2a1f3d); " +
-                    "-fx-text-fill: #e6ddd4; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Cinzel', 'Times New Roman', serif; " +
-                    "-fx-effect: dropshadow(gaussian, #1a1a2e, 6, 0.6, 3, 4); " +
-                    "-fx-padding: 15; " +
-                    "-fx-background-radius: 25; " +
-                    "-fx-border-radius: 25; " +
-                    "-fx-border-color: #6b5b73; " +
-                    "-fx-border-width: 2;");
+            bubble.setStyle("-fx-background-color: #364c52; " +
+                    "-fx-text-fill: #ffffff; " +
+                    "-fx-font-family: 'DM Sans', sans-serif; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 12 16 12 16; " +
+                    "-fx-background-radius: 18; " +
+                    "-fx-effect: none; " +
+                    "-fx-border-width: 0;");
         }
 
         return bubble;
@@ -1756,27 +1892,38 @@ public class ChatRoomController implements Initializable {
         VBox fileContainer = new VBox(5);
         fileContainer.setPadding(new Insets(8));
         fileContainer.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.6));
-        if (!msg.getSenderUsername().equals(client.getUsername())) {
-            Label senderLabel = new Label(msg.getSenderUsername());
-            senderLabel.setStyle("-fx-text-fill: #2980b9; " +
-                    "-fx-font-size: 10px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 0 0 3 0;");
-            fileContainer.getChildren().add(senderLabel);
-        }
+//        if (!msg.getSenderUsername().equals(client.getUsername())) {
+//            Label senderLabel = new Label(msg.getSenderUsername());
+//            senderLabel.setStyle("-fx-text-fill: #a0b9a5; " +
+//                    "-fx-font-size: 10px; " +
+//                    "-fx-font-weight: bold; " +
+//                    "-fx-font-family: 'DM Sans'; " +
+//                    "-fx-padding: 0 0 3 0;");
+//            fileContainer.getChildren().add(senderLabel);
+//        }
 
         Button downloadBtn = new Button("📎 " + msg.getFileName());
-        downloadBtn.setStyle("-fx-background-color: #3498db; " +
-                "-fx-text-fill: white; " +
+        downloadBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 12px; " +
+                "-fx-font-family: 'DM Sans'; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
                 "-fx-padding: 10 15; " +
                 "-fx-background-radius: 15; " +
-                "-fx-border-radius: 15; " +
-                "-fx-border-color: #2980b9; " +
-                "-fx-border-width: 2; " +
                 "-fx-cursor: hand;");
+
+        downloadBtn.setOnMouseEntered(e -> downloadBtn.setStyle(downloadBtn.getStyle() +
+                "-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581);"));
+        downloadBtn.setOnMouseExited(e -> downloadBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                "-fx-text-fill: #f3f4d2; " +
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 12px; " +
+                "-fx-font-family: 'DM Sans'; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1); " +
+                "-fx-padding: 10 15; " +
+                "-fx-background-radius: 15; " +
+                "-fx-cursor: hand;"));
 
         downloadBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
@@ -1795,21 +1942,16 @@ public class ChatRoomController implements Initializable {
         });
 
         Label timeLabel = new Label(msg.getFormattedTimestamp());
-        timeLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 10px;");
+        timeLabel.setStyle("-fx-text-fill: #a0b9a5; -fx-font-size: 10px; -fx-font-family: 'DM Sans';");
 
         fileContainer.getChildren().addAll(downloadBtn, timeLabel);
         if (msg.getSenderUsername().equals(client.getUsername())) {
-            fileContainer.setStyle("-fx-background-color: rgba(18, 140, 126, 0.1); " +
+            fileContainer.setStyle("-fx-background-color: rgba(94, 133, 129, 0.3); " +
                     "-fx-background-radius: 15; " +
-                    "-fx-border-radius: 15; " +
-                    "-fx-border-color: #128C7E; " +
-                    "-fx-border-width: 1;");
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 1, 1);");
         } else {
-            fileContainer.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); " +
+            fileContainer.setStyle("-fx-background-color: rgba(54, 76, 82, 0.4); " +
                     "-fx-background-radius: 15; " +
-                    "-fx-border-radius: 15; " +
-                    "-fx-border-color: #bdc3c7; " +
-                    "-fx-border-width: 1; " +
                     "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 1, 1);");
         }
 
@@ -1820,14 +1962,15 @@ public class ChatRoomController implements Initializable {
         VBox imageContainer = new VBox(5);
         imageContainer.setPadding(new Insets(8));
         imageContainer.maxWidthProperty().bind(chatScroll.widthProperty().multiply(0.7));
-        if (!msg.getSenderUsername().equals(client.getUsername())) {
-            Label senderLabel = new Label(msg.getSenderUsername());
-            senderLabel.setStyle("-fx-text-fill: #2980b9; " +
-                    "-fx-font-size: 10px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 0 0 3 0;");
-            imageContainer.getChildren().add(senderLabel);
-        }
+//        if (!msg.getSenderUsername().equals(client.getUsername())) {
+//            Label senderLabel = new Label(msg.getSenderUsername());
+//            senderLabel.setStyle("-fx-text-fill: #a0b9a5; " +
+//                    "-fx-font-size: 10px; " +
+//                    "-fx-font-weight: bold; " +
+//                    "-fx-font-family: 'DM Sans'; " +
+//                    "-fx-padding: 0 0 3 0;");
+//            imageContainer.getChildren().add(senderLabel);
+//        }
 
         Image img = new Image(new java.io.ByteArrayInputStream(msg.getFileData()));
         ImageView imageView = new ImageView(img);
@@ -1837,15 +1980,16 @@ public class ChatRoomController implements Initializable {
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 1, 1);");
 
         Label timeLabel = new Label(msg.getFormattedTimestamp());
-        timeLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 10px;");
+        timeLabel.setStyle("-fx-text-fill: #a0b9a5; -fx-font-size: 10px; -fx-font-family: 'DM Sans';");
 
         imageContainer.getChildren().addAll(imageView, timeLabel);
         if (msg.getSenderUsername().equals(client.getUsername())) {
-            imageContainer.setStyle("-fx-background-color: rgba(18, 140, 126, 0.1); " +
+            imageContainer.setStyle("-fx-background-color: rgba(94, 133, 129, 0.3); " +
                     "-fx-background-radius: 12; " +
-                    "-fx-padding: 5;");
+                    "-fx-padding: 5; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 1, 1);");
         } else {
-            imageContainer.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); " +
+            imageContainer.setStyle("-fx-background-color: rgba(54, 76, 82, 0.4); " +
                     "-fx-background-radius: 12; " +
                     "-fx-padding: 5; " +
                     "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 1, 1);");
@@ -1887,9 +2031,10 @@ public class ChatRoomController implements Initializable {
         VBox messageContainer = new VBox(5);
         if (!groupMsg.getSenderUsername().equals(client.getUsername()) && !groupMsg.isSystemMessage()) {
             Label senderLabel = new Label(groupMsg.getSenderUsername());
-            senderLabel.setStyle("-fx-text-fill: #3498db; " +
+            senderLabel.setStyle("-fx-text-fill: #ffffff; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 0 0 2 0;");
             messageContainer.getChildren().add(senderLabel);
         }
@@ -1963,46 +2108,49 @@ public class ChatRoomController implements Initializable {
     }
 
     private HBox createFriendCard(Client c) {
-        HBox card = new HBox(10);
+        HBox card = new HBox(15);
         card.setPrefWidth(300);
         card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(5));
-
+        card.setPadding(new Insets(10, 15, 10, 15));
         ImageView img = new ImageView();
-        img.setFitWidth(40);
-        img.setFitHeight(48);
-        Circle clip = new Circle(24, 24, 24);
+        img.setFitWidth(45);
+        img.setFitHeight(45);
+        Circle clip = new Circle(22.5, 22.5, 22.5);
         img.setClip(clip);
         img.setImage(loadDefaultProfileImage());
         loadProfileImageAsync(c.getProfilePicturePath(), img);
-
-        VBox userInfo = new VBox(2);
+        VBox userInfo = new VBox(3);
+        userInfo.setAlignment(Pos.CENTER_LEFT);
         Label name = new Label(c.getUsername());
-        name.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-
+        name.setStyle("-fx-text-fill: #f3f4d2; " +
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 15px; " +
+                "-fx-font-family: 'DM Sans', sans-serif;");
         Label status = new Label();
         if (c.isOnline()) {
             status.setText("Online");
-            status.setStyle("-fx-text-fill: #00ff41; " +
+            status.setStyle("-fx-text-fill: #4CAF50; " +
                     "-fx-font-size: 12px; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
-                    "-fx-effect: dropshadow(gaussian, #00ff41, 3, 0.5, 0, 0);");
+                    "-fx-font-family: 'DM Sans', sans-serif;");
         } else {
             if (c.getLastSeen() != null) {
                 status.setText("Last seen: " + formatLastSeen(c.getLastSeen()));
             } else {
                 status.setText("Offline");
             }
-            status.setStyle("-fx-text-fill: #666666; " +
+            status.setStyle("-fx-text-fill: #888888; " +
                     "-fx-font-size: 12px; " +
-                    "-fx-font-family: 'Times New Roman', serif;");
+                    "-fx-font-family: 'DM Sans', sans-serif;");
         }
 
         userInfo.getChildren().addAll(name, status);
+        Pane spacer = new Pane();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
         Circle onlineIndicator = new Circle(6);
-        onlineIndicator.setFill(c.isOnline() ? Color.web("#4CAF50") : Color.web("#888888"));
+        onlineIndicator.setFill(c.isOnline() ? Color.web("#4CAF50") : Color.web("#666666"));
 
-        card.getChildren().addAll(img, userInfo, onlineIndicator);
+        card.getChildren().addAll(img, userInfo, spacer, onlineIndicator);
+        styleFriendCard(card, c);
         return card;
     }
 
@@ -2029,12 +2177,11 @@ public class ChatRoomController implements Initializable {
     }
 
     private void styleFriendCard(HBox card, Client c) {
-        card.setStyle("-fx-background-color: linear-gradient(to right, rgba(44, 24, 16, 0.6), rgba(26, 15, 8, 0.7)); " +
+        card.setStyle("-fx-background-color: transparent; " +
                 "-fx-background-radius: 12; " +
-                "-fx-border-color: rgba(139, 69, 19, 0.5); " +
-                "-fx-border-width: 1; " +
-                "-fx-border-radius: 12; " +
-                "-fx-cursor: hand;");
+                "-fx-padding: 10 15 10 15; " +
+                "-fx-cursor: hand; " +
+                "-fx-border-radius: 12;");
 
         card.setOnMouseClicked(e -> {
             switchToDirectChat(c);
@@ -2043,37 +2190,44 @@ public class ChatRoomController implements Initializable {
 
         card.setOnMouseEntered(e -> {
             if (!c.getUsername().equals(currentReceiver)) {
-                card.setStyle("-fx-background-color: linear-gradient(to right, rgba(61, 34, 26, 0.8), rgba(38, 22, 18, 0.9)); " +
+                card.setStyle("-fx-background-color: rgba(243, 244, 210, 0.08); " +
                         "-fx-background-radius: 12; " +
-                        "-fx-border-color: #d4af37; " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 12; " +
+                        "-fx-padding: 10 15 10 15; " +
                         "-fx-cursor: hand; " +
-                        "-fx-effect: dropshadow(gaussian, #d4af37, 4, 0.3, 0, 0);");
+                        "-fx-border-radius: 12;");
             }
         });
+
         card.setOnMouseExited(e -> {
             if (!c.getUsername().equals(currentReceiver)) {
-                card.setStyle("-fx-background-color: linear-gradient(to right, rgba(44, 24, 16, 0.6), rgba(26, 15, 8, 0.7)); " +
+                card.setStyle("-fx-background-color: transparent; " +
                         "-fx-background-radius: 12; " +
-                        "-fx-border-color: rgba(139, 69, 19, 0.5); " +
-                        "-fx-border-width: 1; " +
-                        "-fx-border-radius: 12; " +
-                        "-fx-cursor: hand;");
+                        "-fx-padding: 10 15 10 15; " +
+                        "-fx-cursor: hand; " +
+                        "-fx-border-radius: 12;");
             }
         });
     }
 
     private void updateFriendCardStyle(HBox selectedCard) {
         friendslist.getChildren().forEach(node -> {
-            node.setStyle("-fx-background-color: rgba(255,255,255,0.1); " +
-                    "-fx-background-radius: 10; " +
-                    "-fx-cursor: hand;");
+            if (node instanceof HBox) {
+                node.setStyle("-fx-background-color: transparent; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-padding: 10 15 10 15; " +
+                        "-fx-cursor: hand; " +
+                        "-fx-border-radius: 12;");
+            }
         });
-        selectedCard.setStyle("-fx-background-color: rgba(255,255,255,0.3); " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand;");
+        selectedCard.setStyle("-fx-background-color: rgba(243, 244, 210, 0.15); " +
+                "-fx-background-radius: 12; " +
+                "-fx-padding: 10 15 10 15; " +
+                "-fx-cursor: hand; " +
+                "-fx-border-radius: 12; " +
+                "-fx-border-color: rgba(243, 244, 210, 0.3); " +
+                "-fx-border-width: 1;");
     }
+
 
     private void loadChatHistory(String sender, String receiver) {
         msgbox.getChildren().clear();
@@ -2277,158 +2431,189 @@ public class ChatRoomController implements Initializable {
         createGroupDialog.setTitle("Create New Group");
         createGroupDialog.setHeaderText("Create a new group chat");
         createGroupDialog.getDialogPane().setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0707);" +
-                        "-fx-text-fill: #d4af37;" +
-                        "-fx-border-color: #8b4513;" +
+                "-fx-background-color: linear-gradient(to bottom, #122838, #364c52);" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-color: #5e8581;" +
                         "-fx-border-width: 3;" +
                         "-fx-border-radius: 15;" +
                         "-fx-background-radius: 15;" +
-                        "-fx-effect: dropshadow(gaussian, #000000, 10, 0.6, 0, 5);"
+                        "-fx-effect: dropshadow(gaussian, #122838, 10, 0.6, 0, 5);"
+        );
+        createGroupDialog.getDialogPane().lookup(".header-panel .label").setStyle(
+                "-fx-text-fill: #a0b9a5;" +
+                        "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-font-size: 16px;"
         );
 
         GridPane grid = new GridPane();
         grid.setHgap(15);
         grid.setVgap(15);
         grid.setPadding(new Insets(20, 20, 20, 20));
-        grid.setStyle("-fx-background-color: #2b2b2b;");
+        grid.setStyle("-fx-background-color: rgba(54, 76, 82, 0.3);");
+
         groupNameField = new TextField();
         groupNameField.setPromptText("Enter group name");
         groupNameField.setPrefWidth(250);
         groupNameField.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, rgba(44, 24, 16, 0.9), rgba(26, 15, 8, 0.9));" +
-                        "-fx-text-fill: #d4af37;" +
-                        "-fx-prompt-text-fill: rgba(212, 175, 55, 0.6);" +
-                        "-fx-border-color: #8b4513;" +
+                "-fx-background-color: linear-gradient(to bottom, rgba(54, 76, 82, 0.9), rgba(18, 40, 56, 0.9));" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-prompt-text-fill: rgba(243, 244, 210, 0.6);" +
+                        "-fx-border-color: #5e8581;" +
                         "-fx-border-width: 2px;" +
                         "-fx-border-radius: 8px;" +
                         "-fx-background-radius: 8px;" +
                         "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-weight: bold;"
         );
+
         groupDescriptionField = new TextArea();
         groupDescriptionField.setPromptText("Enter group description (optional)");
         groupDescriptionField.setPrefRowCount(3);
         groupDescriptionField.setPrefWidth(250);
         groupDescriptionField.setWrapText(true);
         groupDescriptionField.setStyle(
-                "-fx-background-color: #3c3c3c;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-prompt-text-fill: #888888;" +
-                        "-fx-border-color: #555555;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-control-inner-background: #3c3c3c;"
+                "-fx-background-color: #364c52;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-prompt-text-fill: rgba(243, 244, 210, 0.6);" +
+                        "-fx-border-color: #5e8581;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-control-inner-background: #364c52;" +
+                        "-fx-font-family: 'Times New Roman', serif;"
         );
+
         Label groupNameLabel = new Label("Group Name:");
-        groupNameLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
+        groupNameLabel.setStyle("-fx-text-fill: #f3f4d2; -fx-font-family: 'Times New Roman', serif; -fx-font-size: 13px; -fx-font-weight: bold;");
 
         Label descriptionLabel = new Label("Description:");
-        descriptionLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
+        descriptionLabel.setStyle("-fx-text-fill: #f3f4d2; -fx-font-family: 'Times New Roman', serif; -fx-font-size: 13px; -fx-font-weight: bold;");
 
         Label membersLabel = new Label("Add Members:");
-        membersLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
-        membersLabel.setStyle("-fx-text-fill: #ffffff; -fx-font-family: 'Segoe UI';");
+        membersLabel.setFont(Font.font("Times New Roman", FontWeight.BOLD, 14));
+        membersLabel.setStyle("-fx-text-fill: #a0b9a5; -fx-font-family: 'Times New Roman', serif;");
 
         Label availableLabel = new Label("Available Users:");
-        availableLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
+        availableLabel.setStyle("-fx-text-fill: #f3f4d2; -fx-font-family: 'Times New Roman', serif; -fx-font-size: 13px;");
 
         Label selectedLabel = new Label("Selected Members:");
-        selectedLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
+        selectedLabel.setStyle("-fx-text-fill: #f3f4d2; -fx-font-family: 'Times New Roman', serif; -fx-font-size: 13px;");
+
         availableUsersListView = new ListView<>();
         availableUsersListView.setPrefHeight(180);
         availableUsersListView.setPrefWidth(200);
         availableUsersListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         availableUsersListView.setStyle(
-                "-fx-background-color: #3c3c3c;" +
-                        "-fx-border-color: #555555;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-control-inner-background: #3c3c3c;"
+                "-fx-background-color: #364c52;" +
+                        "-fx-border-color: #5e8581;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-control-inner-background: #364c52;"
         );
 
         selectedMembersListView = new ListView<>();
         selectedMembersListView.setPrefHeight(180);
         selectedMembersListView.setPrefWidth(200);
         selectedMembersListView.setStyle(
-                "-fx-background-color: #3c3c3c;" +
-                        "-fx-border-color: #555555;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-control-inner-background: #3c3c3c;"
+                "-fx-background-color: #364c52;" +
+                        "-fx-border-color: #5e8581;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-control-inner-background: #364c52;"
         );
+
         VBox buttonBox = new VBox(10);
         buttonBox.setAlignment(Pos.CENTER);
 
         Button addMemberBtn = new Button("Add →");
         addMemberBtn.setPrefWidth(80);
         addMemberBtn.setStyle(
-                "-fx-background-color: #0078d4;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-font-family: 'Segoe UI';" +
+                "-fx-background-color: #5e8581;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
                         "-fx-padding: 8px 16px;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;"
         );
 
         Button removeMemberBtn = new Button("← Remove");
         removeMemberBtn.setPrefWidth(80);
         removeMemberBtn.setStyle(
-                "-fx-background-color: #0078d4;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-font-family: 'Segoe UI';" +
+                "-fx-background-color: #364c52;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
                         "-fx-padding: 8px 16px;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #5e8581;" +
+                        "-fx-border-width: 2px;"
         );
+
         addMemberBtn.setOnMouseEntered(e -> addMemberBtn.setStyle(
-                "-fx-background-color: #106ebe;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-font-family: 'Segoe UI';" +
+                "-fx-background-color: #a0b9a5;" +
+                        "-fx-text-fill: #122838;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
                         "-fx-padding: 8px 16px;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;"
         ));
 
         addMemberBtn.setOnMouseExited(e -> addMemberBtn.setStyle(
-                "-fx-background-color: #0078d4;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-font-family: 'Segoe UI';" +
+                "-fx-background-color: #5e8581;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
                         "-fx-padding: 8px 16px;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;"
         ));
 
         removeMemberBtn.setOnMouseEntered(e -> removeMemberBtn.setStyle(
-                "-fx-background-color: #106ebe;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-font-family: 'Segoe UI';" +
+                "-fx-background-color: #5e8581;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
                         "-fx-padding: 8px 16px;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;"
         ));
 
         removeMemberBtn.setOnMouseExited(e -> removeMemberBtn.setStyle(
-                "-fx-background-color: #0078d4;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-font-family: 'Segoe UI';" +
+                "-fx-background-color: #364c52;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
                         "-fx-padding: 8px 16px;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #5e8581;" +
+                        "-fx-border-width: 2px;"
         ));
 
         addMemberBtn.setOnAction(e -> {
@@ -2448,6 +2633,7 @@ public class ChatRoomController implements Initializable {
         });
 
         buttonBox.getChildren().addAll(addMemberBtn, removeMemberBtn);
+
         ColumnConstraints col1 = new ColumnConstraints();
         col1.setMinWidth(120);
         ColumnConstraints col2 = new ColumnConstraints();
@@ -2455,6 +2641,7 @@ public class ChatRoomController implements Initializable {
         ColumnConstraints col3 = new ColumnConstraints();
         col3.setMinWidth(200);
         grid.getColumnConstraints().addAll(col1, col2, col3);
+
         grid.add(groupNameLabel, 0, 0);
         grid.add(groupNameField, 1, 0, 2, 1);
 
@@ -2479,84 +2666,102 @@ public class ChatRoomController implements Initializable {
 
         createButton.setDisable(true);
         createButton.setStyle(
-                "-fx-background-color: #2a2a2a;" +
-                        "-fx-text-fill: #666666;" +
-                        "-fx-border-color: #444444;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-padding: 8px 16px;"
+                "-fx-background-color: #364c52;" +
+                        "-fx-text-fill: rgba(243, 244, 210, 0.5);" +
+                        "-fx-border-color: #5e8581;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;"
         );
 
         cancelButton.setStyle(
-                "-fx-background-color: #3c3c3c;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-color: #555555;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-padding: 8px 16px;"
+                "-fx-background-color: #5e8581;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;"
         );
+
         cancelButton.setOnMouseEntered(e -> cancelButton.setStyle(
-                "-fx-background-color: #4a4a4a;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-color: #555555;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-padding: 8px 16px;"
+                "-fx-background-color: #a0b9a5;" +
+                        "-fx-text-fill: #122838;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;"
         ));
 
         cancelButton.setOnMouseExited(e -> cancelButton.setStyle(
-                "-fx-background-color: #3c3c3c;" +
-                        "-fx-text-fill: #ffffff;" +
-                        "-fx-border-color: #555555;" +
-                        "-fx-border-width: 1px;" +
-                        "-fx-border-radius: 4px;" +
-                        "-fx-background-radius: 4px;" +
-                        "-fx-padding: 8px 16px;"
+                "-fx-background-color: #5e8581;" +
+                        "-fx-text-fill: #f3f4d2;" +
+                        "-fx-border-color: #a0b9a5;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-border-radius: 8px;" +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-padding: 8px 16px;" +
+                        "-fx-font-family: 'Times New Roman', serif;" +
+                        "-fx-font-weight: bold;"
         ));
+
         groupNameField.textProperty().addListener((observable, oldValue, newValue) -> {
             boolean isEmpty = newValue == null || newValue.trim().isEmpty();
             createButton.setDisable(isEmpty);
             if (!isEmpty) {
                 createButton.setStyle(
-                        "-fx-background-color: #0078d4;" +
-                                "-fx-text-fill: #ffffff;" +
-                                "-fx-border-color: #0078d4;" +
-                                "-fx-border-width: 1px;" +
-                                "-fx-border-radius: 4px;" +
-                                "-fx-background-radius: 4px;" +
-                                "-fx-padding: 8px 16px;"
+                        "-fx-background-color: #a0b9a5;" +
+                                "-fx-text-fill: #122838;" +
+                                "-fx-border-color: #a0b9a5;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-padding: 8px 16px;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;"
                 );
                 createButton.setOnMouseEntered(e -> createButton.setStyle(
-                        "-fx-background-color: #106ebe;" +
-                                "-fx-text-fill: #ffffff;" +
-                                "-fx-border-color: #106ebe;" +
-                                "-fx-border-width: 1px;" +
-                                "-fx-border-radius: 4px;" +
-                                "-fx-background-radius: 4px;" +
-                                "-fx-padding: 8px 16px;"
+                        "-fx-background-color: #5e8581;" +
+                                "-fx-text-fill: #f3f4d2;" +
+                                "-fx-border-color: #a0b9a5;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-padding: 8px 16px;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;"
                 ));
 
                 createButton.setOnMouseExited(e -> createButton.setStyle(
-                        "-fx-background-color: #0078d4;" +
-                                "-fx-text-fill: #ffffff;" +
-                                "-fx-border-color: #0078d4;" +
-                                "-fx-border-width: 1px;" +
-                                "-fx-border-radius: 4px;" +
-                                "-fx-background-radius: 4px;" +
-                                "-fx-padding: 8px 16px;"
+                        "-fx-background-color: #a0b9a5;" +
+                                "-fx-text-fill: #122838;" +
+                                "-fx-border-color: #a0b9a5;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-padding: 8px 16px;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;"
                 ));
             } else {
                 createButton.setStyle(
-                        "-fx-background-color: #2a2a2a;" +
-                                "-fx-text-fill: #666666;" +
-                                "-fx-border-color: #444444;" +
-                                "-fx-border-width: 1px;" +
-                                "-fx-border-radius: 4px;" +
-                                "-fx-background-radius: 4px;" +
-                                "-fx-padding: 8px 16px;"
+                        "-fx-background-color: #364c52;" +
+                                "-fx-text-fill: rgba(243, 244, 210, 0.5);" +
+                                "-fx-border-color: #5e8581;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-padding: 8px 16px;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;"
                 );
                 createButton.setOnMouseEntered(null);
                 createButton.setOnMouseExited(null);
@@ -2683,7 +2888,7 @@ public class ChatRoomController implements Initializable {
 
     private void UpdateBG() {
         try {
-            String BGPath = "/com/example/owlpost_2_0/Images/Backgrounds/" + TimeBasedBG() + ".gif";
+            String BGPath = "/com/example/owlpost_2_0/Images/Backgrounds/hogwarts.png";
             Image image = new Image(getClass().getResource(BGPath).toExternalForm());
 
             Platform.runLater(() -> {
@@ -2707,94 +2912,85 @@ public class ChatRoomController implements Initializable {
             groupButtonsContainer = new HBox(15);
             groupButtonsContainer.setAlignment(Pos.CENTER);
             groupButtonsContainer.setPadding(new Insets(8));
-            groupButtonsContainer.setStyle("-fx-background-color: rgba(26, 26, 26, 0.85); " +
+            groupButtonsContainer.setStyle("-fx-background-color: rgba(54, 76, 82, 0.9); " +
                     "-fx-background-radius: 12; " +
-                    "-fx-border-color: rgba(212, 175, 55, 0.6); " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 12; " +
                     "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 8, 0.4, 0, 3);");
+
             groupInfoBtn = new Button("🔮 Secrets");
-            groupInfoBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2c1810, #1a0f08); " +
-                    "-fx-text-fill: #d4af37; " +
+            groupInfoBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #364c52, #122838); " +
+                    "-fx-text-fill: #f3f4d2; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 8 15; " +
                     "-fx-background-radius: 20; " +
-                    "-fx-border-color: #8b4513; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 20; " +
                     "-fx-cursor: hand; " +
                     "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);");
             groupInfoBtn.setOnMouseEntered(e -> groupInfoBtn.setStyle(groupInfoBtn.getStyle() +
-                    "-fx-background-color: linear-gradient(to bottom, #3d221a, #261612); " +
-                    "-fx-text-fill: #ffd700;"));
-            groupInfoBtn.setOnMouseExited(e -> groupInfoBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2c1810, #1a0f08); " +
-                    "-fx-text-fill: #d4af37; " +
+                    "-fx-background-color: linear-gradient(to bottom, #5e8581, #364c52); " +
+                    "-fx-text-fill: #f3f4d2;"));
+            groupInfoBtn.setOnMouseExited(e -> groupInfoBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #364c52, #122838); " +
+                    "-fx-text-fill: #f3f4d2; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 8 15; " +
                     "-fx-background-radius: 20; " +
-                    "-fx-border-color: #8b4513; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 20; " +
                     "-fx-cursor: hand; " +
                     "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);"));
             groupInfoBtn.setOnAction(this::showGroupInfo);
+
             addMemberBtn = new Button("⚡ Recruit");
-            addMemberBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #0f2a0f, #071207); " +
-                    "-fx-text-fill: #90ee90; " +
+            addMemberBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581); " +
+                    "-fx-text-fill: #f3f4d2; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 8 15; " +
                     "-fx-background-radius: 20; " +
-                    "-fx-border-color: #228b22; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 20; " +
                     "-fx-cursor: hand; " +
                     "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);");
             addMemberBtn.setOnMouseEntered(e -> addMemberBtn.setStyle(addMemberBtn.getStyle() +
-                    "-fx-background-color: linear-gradient(to bottom, #1a3d1a, #0d1f0d); " +
-                    "-fx-text-fill: #98fb98;"));
-            addMemberBtn.setOnMouseExited(e -> addMemberBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #0f2a0f, #071207); " +
-                    "-fx-text-fill: #90ee90; " +
+                    "-fx-background-color: linear-gradient(to bottom, #5e8581, #a0b9a5); " +
+                    "-fx-text-fill: #f3f4d2;"));
+            addMemberBtn.setOnMouseExited(e -> addMemberBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #a0b9a5, #5e8581); " +
+                    "-fx-text-fill: #f3f4d2; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 8 15; " +
                     "-fx-background-radius: 20; " +
-                    "-fx-border-color: #228b22; " +
+                    "-fx-border-color: #364c52; " +
                     "-fx-border-width: 1; " +
                     "-fx-border-radius: 20; " +
                     "-fx-cursor: hand; " +
                     "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);"));
             addMemberBtn.setOnAction(this::addMemberToGroup);
+
             leaveGroupBtn = new Button("💀 Vanish");
-            leaveGroupBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2a0a0a, #150505); " +
-                    "-fx-text-fill: #ff6b6b; " +
+            leaveGroupBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                    "-fx-text-fill: #f3f4d2; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 8 15; " +
                     "-fx-background-radius: 20; " +
-                    "-fx-border-color: #8b0000; " +
+                    "-fx-border-color: #5e8581; " +
                     "-fx-border-width: 1; " +
                     "-fx-border-radius: 20; " +
                     "-fx-cursor: hand; " +
                     "-fx-effect: dropshadow(gaussian, #000000, 3, 0.3, 0, 2);");
             leaveGroupBtn.setOnMouseEntered(e -> leaveGroupBtn.setStyle(leaveGroupBtn.getStyle() +
-                    "-fx-background-color: linear-gradient(to bottom, #3d1010, #1f0808); " +
-                    "-fx-text-fill: #ff4444;"));
-            leaveGroupBtn.setOnMouseExited(e -> leaveGroupBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #2a0a0a, #150505); " +
-                    "-fx-text-fill: #ff6b6b; " +
+                    "-fx-background-color: linear-gradient(to bottom, #364c52, #122838); " +
+                    "-fx-text-fill: #a0b9a5;"));
+            leaveGroupBtn.setOnMouseExited(e -> leaveGroupBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #122838, #364c52); " +
+                    "-fx-text-fill: #f3f4d2; " +
                     "-fx-font-size: 11px; " +
                     "-fx-font-weight: bold; " +
-                    "-fx-font-family: 'Times New Roman', serif; " +
+                    "-fx-font-family: 'DM Sans'; " +
                     "-fx-padding: 8 15; " +
                     "-fx-background-radius: 20; " +
-                    "-fx-border-color: #8b0000; " +
+                    "-fx-border-color: #5e8581; " +
                     "-fx-border-width: 1; " +
                     "-fx-border-radius: 20; " +
                     "-fx-cursor: hand; " +
@@ -2805,23 +3001,17 @@ public class ChatRoomController implements Initializable {
         }
     }
 
+
     private void showGroupButtons() {
         createGroupButtons();
-        if (!chatbody.getChildren().contains(groupButtonsContainer)) {
-            groupButtonsContainer.setLayoutX(10);
-            groupButtonsContainer.setLayoutY(10);
-            if (chatbody.getParent() instanceof StackPane) {
-                StackPane parent = (StackPane) chatbody.getParent();
-                if (!parent.getChildren().contains(groupButtonsContainer)) {
-                    parent.getChildren().add(groupButtonsContainer);
-                    groupButtonsContainer.toFront();
-                }
-            } else {
-                int insertIndex = 0;
-                chatbody.getChildren().add(insertIndex, groupButtonsContainer);
-            }
+        groupButtonsContainer.setLayoutX(27.0);
+        groupButtonsContainer.setLayoutY(80.0);
+        if (!infoPane.getChildren().contains(groupButtonsContainer)) {
+            infoPane.getChildren().add(groupButtonsContainer);
         }
+
         groupButtonsContainer.setVisible(true);
+        groupButtonsContainer.toFront();
     }
 
     private void hideGroupButtons() {
@@ -3022,7 +3212,7 @@ public class ChatRoomController implements Initializable {
                     Platform.runLater(() -> {
                         if (gameBtn != null) {
                             gameBtn.setDisable(false);
-                            gameBtn.setText("⚔️ Challenge to Duel");
+                            gameBtn.setText("");
                         }
                     });
                 } else {
@@ -3030,7 +3220,7 @@ public class ChatRoomController implements Initializable {
                     Platform.runLater(() -> {
                         if (gameBtn != null) {
                             gameBtn.setDisable(true);
-                            gameBtn.setText("⚔️ Game Server Offline");
+                            gameBtn.setText("");
                         }
                     });
                 }
@@ -3044,65 +3234,11 @@ public class ChatRoomController implements Initializable {
         if (gameBtn != null) {
             return;
         }
-        gameBtn = new Button("⚔️ Connecting...");
-        gameBtn.setDisable(true);
-        gameBtn.setPrefHeight(40.0);
-        gameBtn.setPrefWidth(50.0);
-        gameBtn.getStyleClass().add("call-btn"); // Use same style class as other buttons
-        gameBtn.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e);" +
-                        "-fx-text-fill: #ffd700;" +
-                        "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-font-size: 18px;" +
-                        "-fx-padding: 10;" +
-                        "-fx-background-radius: 25;" +
-                        "-fx-border-color: #6b5b73;" +
-                        "-fx-border-width: 2;" +
-                        "-fx-border-radius: 25;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, #2d1b69, 6, 0.7, 2, 4);"
-        );
-
-        gameBtn.setOnMouseEntered(e -> {
-            if (!gameBtn.isDisabled()) {
-                gameBtn.setStyle(
-                        "-fx-background-color: linear-gradient(to bottom, #3d2c79, #2a2a3e);" +
-                                "-fx-text-fill: #ffffff;" +
-                                "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-font-size: 18px;" +
-                                "-fx-padding: 10;" +
-                                "-fx-background-radius: 25;" +
-                                "-fx-border-color: #6b5b73;" +
-                                "-fx-border-width: 2;" +
-                                "-fx-border-radius: 25;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-effect: dropshadow(gaussian, #3d2c79, 8, 0.8, 2, 4);"
-                );
-            }
-        });
-
-        gameBtn.setOnMouseExited(e -> {
-            if (!gameBtn.isDisabled()) {
-                gameBtn.setStyle(
-                        "-fx-background-color: linear-gradient(to bottom, #2d1b69, #1a1a2e);" +
-                                "-fx-text-fill: #ffd700;" +
-                                "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-font-size: 18px;" +
-                                "-fx-padding: 10;" +
-                                "-fx-background-radius: 25;" +
-                                "-fx-border-color: #6b5b73;" +
-                                "-fx-border-width: 2;" +
-                                "-fx-border-radius: 25;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-effect: dropshadow(gaussian, #2d1b69, 6, 0.7, 2, 4);"
-                );
-            }
-        });
-
+        gameBtn = new Button();
+        setupIconButton(gameBtn, "/com/example/owlpost_2_0/Images/Icons/game.png", "call-btn");
+        gameBtn.setId("gameBtn");
         gameBtn.setOnAction(this::initiateGameChallenge);
+        gameBtn.setText("");
     }
 
     private void initiateGameChallenge(ActionEvent event) {
@@ -3131,20 +3267,20 @@ public class ChatRoomController implements Initializable {
             dialog.setHeaderText("🧙‍♂️ Select the size of your magical duel arena:");
             dialog.setContentText("Arena Size:");
             dialog.getDialogPane().setStyle(
-                    "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
-                            "-fx-border-color: #8b4513;" +
+                    "-fx-background-color: linear-gradient(to bottom, #122838, #364c52);" +
+                            "-fx-border-color: #5e8581;" +
                             "-fx-border-width: 3px;" +
                             "-fx-border-radius: 15px;" +
                             "-fx-background-radius: 15px;"
             );
             dialog.getDialogPane().lookup(".header-panel .label").setStyle(
-                    "-fx-text-fill: #ffd700;" +
+                    "-fx-text-fill: #a0b9a5;" +
                             "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
                             "-fx-font-weight: bold;" +
                             "-fx-font-size: 16px;"
             );
             dialog.getDialogPane().lookup(".content.label").setStyle(
-                    "-fx-text-fill: #e6ddd4;" +
+                    "-fx-text-fill: #f3f4d2;" +
                             "-fx-font-family: 'Times New Roman', serif;" +
                             "-fx-font-size: 14px;"
             );
@@ -3166,15 +3302,15 @@ public class ChatRoomController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText(message);
             alert.getDialogPane().setStyle(
-                    "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
-                            "-fx-border-color: #8b4513;" +
+                    "-fx-background-color: linear-gradient(to bottom, #122838, #364c52);" +
+                            "-fx-border-color: #5e8581;" +
                             "-fx-border-width: 3px;" +
                             "-fx-border-radius: 15px;" +
                             "-fx-background-radius: 15px;"
             );
 
             alert.getDialogPane().lookup(".content.label").setStyle(
-                    "-fx-text-fill: #e6ddd4;" +
+                    "-fx-text-fill: #f3f4d2;" +
                             "-fx-font-family: 'Times New Roman', serif;" +
                             "-fx-font-size: 14px;"
             );
@@ -3216,6 +3352,7 @@ public class ChatRoomController implements Initializable {
         createOutgoingCallUI();
         setupCreateGroupDialog();
         createGameButton();
+        initializeIconButtons();
         loadEmojis();
         msgbox.heightProperty().addListener((obs, oldVal, newVal) -> {
             chatScroll.setVvalue(1.0);
