@@ -2,6 +2,7 @@ package com.example.owlpost_2_0.Server;
 
 import com.example.owlpost_2_0.ChatRoom.ChatMessage;
 import com.example.owlpost_2_0.Database.DatabaseHandler;
+import com.example.owlpost_2_0.Game.GameServer;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -132,6 +133,7 @@ public class Server {
                 server.close();
             }));
             server.start();
+
         }catch (Exception e) {
             System.out.println("Error starting server " + e.getMessage());
         }

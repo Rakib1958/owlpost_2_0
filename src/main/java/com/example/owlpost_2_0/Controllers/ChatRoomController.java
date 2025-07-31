@@ -7,10 +7,11 @@ import com.example.owlpost_2_0.ChatRoom.GroupMessage;
 import com.example.owlpost_2_0.Client.ChatClient;
 import com.example.owlpost_2_0.Client.Client;
 import com.example.owlpost_2_0.Database.DatabaseHandler;
+import com.example.owlpost_2_0.Game.GameServer;
 import com.example.owlpost_2_0.Gemini.GeminiApiClient;
 import com.example.owlpost_2_0.Resources.Animations;
 import com.example.owlpost_2_0.Resources.Audios;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -22,13 +23,14 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
-import javafx.animation.Timeline;
-import javafx.animation.KeyFrame;
 import javafx.util.Duration;
 
 import java.io.BufferedReader;
@@ -183,6 +185,13 @@ public class ChatRoomController implements Initializable {
     Thread recordingThread;
     AudioFormat format = new AudioFormat(44100.0f, 16, 1, true, false);
     File audioFile = new File("recording.wav");
+
+    @FXML
+    private Pane introvideopane, footstepPane;
+    @FXML
+    private MediaView owlvideo;
+    @FXML
+    private Label owltext, privacytext;
 
 
     private HBox groupButtonsContainer;
@@ -3212,6 +3221,8 @@ public class ChatRoomController implements Initializable {
     @
     Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        loadIntroVideo();
+        loadFootsteps();
         initializeCallUI();
         createOutgoingCallUI();
         setupCreateGroupDialog();
@@ -3246,6 +3257,7 @@ public class ChatRoomController implements Initializable {
             }
         });
         startGemini();
+
 
 //        Audios.playBGM();
     }
@@ -3352,5 +3364,99 @@ public class ChatRoomController implements Initializable {
 
             emojibox.getChildren().add(hbox);
         }
+    }
+
+    private void loadIntroVideo() {
+//        System.out.println(new File("src/main/resources/com/example/owlpost_2_0/Video/owlvideo.mp4").toURI().toString());
+        Media media = new Media(new File("src/main/resources/com/example/owlpost_2_0/Video/owlvideo.mp4").toURI().toString());
+        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        owlvideo = new MediaView(mediaPlayer);
+//        owlvideo.setPreserveRatio(false);
+        owlvideo.setFitWidth(1280);
+        owlvideo.setFitHeight(720);
+
+        introvideopane.getChildren().add(owlvideo);
+        mediaPlayer.setOnEndOfMedia(()->{
+            Animations.FadeTransition(introvideopane, false);
+            Animations.FadeTransition(footstepPane, false);
+        });
+
+        mediaPlayer.setOnReady(()->{
+            mediaPlayer.play();
+        });
+    }
+
+    private void loadFootsteps() {
+        Image leftfoot = new Image(getClass().getResourceAsStream("/com/example/owlpost_2_0/Images/Animation/left.png"));
+        Image rightfoot = new Image(getClass().getResourceAsStream("/com/example/owlpost_2_0/Images/Animation/right.png"));
+        ImageView currentStep = new ImageView(leftfoot);
+        footstepPane.getChildren().add(currentStep);
+        double startX = 50;
+        double Y = 650;
+        int steps = 20;
+        double stepSize = 60;
+
+        Timeline timeline = new Timeline();
+        for (int i = 0; i < steps; i++) {
+            final int index = i;
+            KeyFrame kf = new KeyFrame(Duration.seconds(i * 0.5), e -> {
+                currentStep.setImage(index % 2 == 0 ? leftfoot : rightfoot);
+                currentStep.setLayoutX(startX + index * stepSize);
+                currentStep.setLayoutY(Y);
+                currentStep.setOpacity(1.0);
+
+                FadeTransition fade = new FadeTransition(Duration.seconds(0.4), currentStep);
+                fade.setFromValue(1.0);
+                fade.setToValue(0.0);
+                fade.play();
+            });
+            timeline.getKeyFrames().add(kf);
+        }
+
+        KeyFrame showLabel = new KeyFrame(Duration.seconds(2.0), e -> {
+//            Label owlPostLabel = new Label("OwlPost");
+//            owlPostLabel.setFont(Font.font("Georgia", FontWeight.EXTRA_BOLD, 36));
+//            owlPostLabel.setTextFill(Color.WHITE);
+//            owlPostLabel.setLayoutX(600); // Top right corner-ish
+//            owlPostLabel.setLayoutY(40);
+//            owlPostLabel.setOpacity(0);
+//
+//            animationPane.getChildren().add(owlPostLabel);
+            owltext.setVisible(true);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.2), owltext);
+            fadeIn.setFromValue(0);
+            fadeIn.setToValue(1.0);
+
+            ScaleTransition pop = new ScaleTransition(Duration.seconds(1.2), owltext);
+            pop.setFromX(0.8);
+            pop.setToX(1.0);
+            pop.setFromY(0.8);
+            pop.setToY(1.0);
+
+            ParallelTransition appear = new ParallelTransition(fadeIn, pop);
+            appear.setOnFinished(ev -> {
+                playTypewriterEffect(privacytext, "Your privacy is our utmost concern", Duration.millis(40));
+            });
+            appear.play();
+        });
+
+        timeline.getKeyFrames().add(showLabel);
+        timeline.play();
+    }
+
+    private void playTypewriterEffect(Label label, String message, Duration delayPerChar) {
+        label.setVisible(true); // make sure it's visible
+        Timeline timeline = new Timeline();
+
+        for (int i = 0; i < message.length(); i++) {
+            final int index = i;
+            KeyFrame keyFrame = new KeyFrame(delayPerChar.multiply(i), e -> {
+                label.setText(message.substring(0, index + 1));
+            });
+            timeline.getKeyFrames().add(keyFrame);
+        }
+
+        timeline.play();
     }
 }

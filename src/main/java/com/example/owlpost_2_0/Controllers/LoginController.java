@@ -3,6 +3,7 @@ package com.example.owlpost_2_0.Controllers;
 import com.example.owlpost_2_0.Client.Client;
 import com.example.owlpost_2_0.Database.DatabaseHandler;
 import com.example.owlpost_2_0.Email.EmailService;
+import com.example.owlpost_2_0.Game.GameServer;
 import com.example.owlpost_2_0.Resources.Animations;
 import com.example.owlpost_2_0.Resources.Audios;
 import javafx.animation.FadeTransition;
@@ -601,6 +602,7 @@ public class LoginController implements Initializable {
 
     public void ToChatRoom(Button btn) {
         try {
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/owlpost_2_0/Fxml/chatroom.fxml"));
             Parent root = loader.load();
             System.out.println("loaded");

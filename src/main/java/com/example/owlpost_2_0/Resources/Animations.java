@@ -2,6 +2,7 @@ package com.example.owlpost_2_0.Resources;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
+import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
@@ -9,16 +10,16 @@ import javafx.util.Duration;
 
 
 public class Animations {
-    public static void FadeTransition(Pane pane, boolean show) {
-        FadeTransition ft = new FadeTransition(Duration.millis(50), pane);
+    public static void FadeTransition(Node node, boolean show) {
+        FadeTransition ft = new FadeTransition(Duration.millis(1000), node);
         if (show) {
-            pane.setVisible(true);
+            node.setVisible(true);
             ft.setFromValue(0);
             ft.setToValue(1);
         } else {
             ft.setFromValue(1);
             ft.setToValue(0);
-            ft.setOnFinished(event -> pane.setVisible(show));
+            ft.setOnFinished(event -> node.setVisible(show));
         }
         ft.play();
     }
