@@ -120,7 +120,7 @@
                                                 <Circle fx:id="clientImageClip" centerX="32" centerY="32" radius="32" />
                                             </clip>
                                         </ImageView>
-                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="250.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" text="john_doe" textFill="#e6ddd4" />
+                                        <Label fx:id="clientIdLabel" prefHeight="27.0" prefWidth="200.0" style="-fx-font-family: 'Cinzel', 'Times New Roman', serif;" text="john_doe" textFill="#e6ddd4" />
                                         <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" text="🗣️" textFill="#b8860b">
                                             <font>
                                                 <Font size="20.0" />
