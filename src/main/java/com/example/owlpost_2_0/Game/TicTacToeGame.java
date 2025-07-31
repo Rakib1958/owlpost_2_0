@@ -31,6 +31,31 @@ public class TicTacToeGame {
     private boolean gameActive = true;
     private VBox gameContainer;
     private HBox controlButtons;
+    private static final String BASE_BUTTON_STYLE =
+            "-fx-background-color: rgba(54, 76, 82, 0.9);" +
+                    "-fx-border-color: #5e8581;" +
+                    "-fx-border-width: 2px;" +
+                    "-fx-border-radius: 8px;" +
+                    "-fx-background-radius: 8px;" +
+                    "-fx-text-fill: #f3f4d2;" +
+                    "-fx-font-family: 'Times New Roman', serif;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-font-size: 24px;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(gaussian, #122838, 8, 0.5, 0, 2);";
+
+    private static final String HOVER_BUTTON_STYLE =
+            "-fx-background-color: rgba(160, 185, 165, 0.9);" +
+                    "-fx-border-color: #a0b9a5;" +
+                    "-fx-border-width: 2px;" +
+                    "-fx-border-radius: 8px;" +
+                    "-fx-background-radius: 8px;" +
+                    "-fx-text-fill: #122838;" +
+                    "-fx-font-family: 'Times New Roman', serif;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-font-size: 24px;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(gaussian, #122838, 8, 0.5, 0, 2);";
 
     public TicTacToeGame(GameClient gameClient, String gameId, int gridSize,
                          String playerSymbol, String opponentName) {
@@ -39,7 +64,7 @@ public class TicTacToeGame {
         this.gridSize = gridSize;
         this.playerSymbol = playerSymbol;
         this.opponentName = opponentName;
-        this.currentPlayer = "X"; // X always starts
+        this.currentPlayer = "X";
 
         initializeGame();
         setupGameStage();
@@ -49,7 +74,6 @@ public class TicTacToeGame {
         gameBoard = new String[gridSize][gridSize];
         gameButtons = new Button[gridSize][gridSize];
 
-        // Initialize empty board
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
                 gameBoard[i][j] = "";
@@ -63,62 +87,54 @@ public class TicTacToeGame {
         gameStage.setTitle("⚡ Magical TicTacToe - Duel of Minds ⚡");
         gameStage.setResizable(false);
 
-        // Main container
         gameContainer = new VBox(20);
         gameContainer.setAlignment(Pos.CENTER);
         gameContainer.setPadding(new Insets(30));
         gameContainer.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #0d0707, #1a0f08, #2c1810);" +
-                        "-fx-border-color: #8b4513;" +
+                "-fx-background-color: linear-gradient(to bottom, #122838, #364c52, #5e8581);" +
+                        "-fx-border-color: #a0b9a5;" +
                         "-fx-border-width: 3px;" +
                         "-fx-border-radius: 15px;" +
                         "-fx-background-radius: 15px;"
         );
 
-        // Title
         Label titleLabel = new Label("⚔️ WIZARDING DUEL ⚔️");
         titleLabel.setStyle(
-                "-fx-text-fill: #ffd700;" +
+                "-fx-text-fill: #f3f4d2;" +
                         "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
                         "-fx-font-weight: bold;" +
                         "-fx-font-size: 24px;" +
-                        "-fx-effect: dropshadow(gaussian, #000000, 10, 0.8, 0, 0);"
+                        "-fx-effect: dropshadow(gaussian, #122838, 10, 0.8, 0, 0);"
         );
 
-        // Player info
         playerInfoLabel = new Label();
         updatePlayerInfo();
         playerInfoLabel.setStyle(
-                "-fx-text-fill: #e6ddd4;" +
+                "-fx-text-fill: #a0b9a5;" +
                         "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
                         "-fx-font-weight: bold;" +
                         "-fx-font-size: 16px;" +
                         "-fx-text-alignment: center;"
         );
 
-        // Status label
         statusLabel = new Label("⏳ Waiting for your move...");
         statusLabel.setStyle(
-                "-fx-text-fill: #90ee90;" +
+                "-fx-text-fill: #f3f4d2;" +
                         "-fx-font-family: 'Times New Roman', serif;" +
                         "-fx-font-weight: bold;" +
                         "-fx-font-size: 14px;" +
                         "-fx-text-alignment: center;"
         );
 
-        // Game grid
         createGameGrid();
-
-        // Control buttons
         createControlButtons();
 
         gameContainer.getChildren().addAll(titleLabel, playerInfoLabel, statusLabel, gameGrid, controlButtons);
 
         Scene scene = new Scene(gameContainer);
-        scene.setFill(Color.BLACK);
+        scene.setFill(Color.web("#122838"));
         gameStage.setScene(scene);
 
-        // Add fade in animation
         FadeTransition fadeIn = new FadeTransition(Duration.millis(1000), gameContainer);
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
@@ -143,12 +159,12 @@ public class TicTacToeGame {
         gameGrid.setVgap(5);
         gameGrid.setPadding(new Insets(20));
         gameGrid.setStyle(
-                "-fx-background-color: rgba(26, 15, 8, 0.9);" +
+                "-fx-background-color: rgba(18, 40, 56, 0.9);" +
                         "-fx-background-radius: 15px;" +
-                        "-fx-border-color: #8b4513;" +
+                        "-fx-border-color: #5e8581;" +
                         "-fx-border-width: 2px;" +
                         "-fx-border-radius: 15px;" +
-                        "-fx-effect: innershadow(gaussian, #000000, 15, 0.7, 0, 0);"
+                        "-fx-effect: innershadow(gaussian, #122838, 15, 0.7, 0, 0);"
         );
 
         int buttonSize = gridSize == 3 ? 80 : 60;
@@ -157,23 +173,22 @@ public class TicTacToeGame {
             for (int j = 0; j < gridSize; j++) {
                 Button button = new Button();
                 button.setPrefSize(buttonSize, buttonSize);
-                button.setStyle(createButtonStyle(false));
+                button.setStyle(BASE_BUTTON_STYLE);
 
                 final int row = i;
                 final int col = j;
 
                 button.setOnAction(e -> makeMove(row, col));
 
-                // Hover effects
                 button.setOnMouseEntered(e -> {
                     if (button.getText().isEmpty() && gameActive && currentPlayer.equals(playerSymbol)) {
-                        button.setStyle(createButtonStyle(true));
+                        button.setStyle(HOVER_BUTTON_STYLE);
                     }
                 });
 
                 button.setOnMouseExited(e -> {
                     if (button.getText().isEmpty()) {
-                        button.setStyle(createButtonStyle(false));
+                        button.setStyle(BASE_BUTTON_STYLE);
                     }
                 });
 
@@ -183,38 +198,17 @@ public class TicTacToeGame {
         }
     }
 
-    private String createButtonStyle(boolean hovered) {
-        String baseColor = hovered ? "rgba(44, 24, 16, 0.9)" : "rgba(26, 15, 8, 0.8)";
-        String borderColor = hovered ? "#d4af37" : "#8b4513";
-        String textColor = "#ffd700";
-
-        return String.format(
-                "-fx-background-color: %s;" +
-                        "-fx-border-color: %s;" +
-                        "-fx-border-width: 2px;" +
-                        "-fx-border-radius: 8px;" +
-                        "-fx-background-radius: 8px;" +
-                        "-fx-text-fill: %s;" +
-                        "-fx-font-family: 'Times New Roman', serif;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-font-size: 24px;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, #000000, 8, 0.5, 0, 2);",
-                baseColor, borderColor, textColor
-        );
-    }
-
     private void createControlButtons() {
         controlButtons = new HBox(20);
         controlButtons.setAlignment(Pos.CENTER);
 
         Button playAgainBtn = new Button("🔄 Cast Again");
-        playAgainBtn.setStyle(createControlButtonStyle("#0f2a0f", "#90ee90"));
+        playAgainBtn.setStyle(createControlButtonStyle("#5e8581", "#f3f4d2"));
         playAgainBtn.setOnAction(e -> playAgain());
         playAgainBtn.setVisible(false);
 
         Button exitBtn = new Button("🚪 Leave Duel");
-        exitBtn.setStyle(createControlButtonStyle("#2a0a0a", "#ff6b6b"));
+        exitBtn.setStyle(createControlButtonStyle("#364c52", "#f3f4d2"));
         exitBtn.setOnAction(e -> exitGame());
 
         controlButtons.getChildren().addAll(playAgainBtn, exitBtn);
@@ -222,19 +216,19 @@ public class TicTacToeGame {
 
     private String createControlButtonStyle(String bgColor, String textColor) {
         return String.format(
-                "-fx-background-color: linear-gradient(to bottom, %s, rgba(0,0,0,0.8));" +
+                "-fx-background-color: linear-gradient(to bottom, %s, #122838);" +
                         "-fx-text-fill: %s;" +
                         "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
                         "-fx-font-weight: bold;" +
                         "-fx-font-size: 14px;" +
                         "-fx-padding: 12 20;" +
                         "-fx-background-radius: 25px;" +
-                        "-fx-border-color: %s;" +
+                        "-fx-border-color: #a0b9a5;" +
                         "-fx-border-width: 2px;" +
                         "-fx-border-radius: 25px;" +
                         "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, #000000, 8, 0.6, 0, 3);",
-                bgColor, textColor, textColor.replace("#", "rgba(").replace("rgb", "").replace(")", ", 0.8)")
+                        "-fx-effect: dropshadow(gaussian, #122838, 8, 0.6, 0, 3);",
+                bgColor, textColor
         );
     }
 
@@ -243,7 +237,6 @@ public class TicTacToeGame {
             return;
         }
 
-        // Send move to server
         gameClient.sendMove(gameId, row, col);
     }
 
@@ -252,15 +245,23 @@ public class TicTacToeGame {
             if (row >= 0 && row < gridSize && col >= 0 && col < gridSize && gameBoard[row][col].isEmpty()) {
                 gameBoard[row][col] = symbol;
                 gameButtons[row][col].setText(symbol);
+                String symbolColor = symbol.equals("X") ? "#f3f4d2" : "#000000";
+                String buttonStyle =
+                        "-fx-background-color: rgba(54, 76, 82, 0.9);" +
+                                "-fx-border-color: #5e8581;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-text-fill: " + symbolColor + ";" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 24px;" +
+                                "-fx-effect: dropshadow(gaussian, #122838, 8, 0.5, 0, 2);";
 
-                // Style the button based on symbol
-                String symbolColor = symbol.equals("X") ? "#ff6b6b" : "#4CAF50";
-                gameButtons[row][col].setStyle(
-                        gameButtons[row][col].getStyle() +
-                                String.format("-fx-text-fill: %s; -fx-background-color: rgba(44, 24, 16, 0.9);", symbolColor)
-                );
+                gameButtons[row][col].setStyle(buttonStyle);
+                gameButtons[row][col].setOnMouseEntered(null);
+                gameButtons[row][col].setOnMouseExited(null);
 
-                // Add scale animation
                 ScaleTransition scale = new ScaleTransition(Duration.millis(200), gameButtons[row][col]);
                 scale.setFromX(0.8);
                 scale.setFromY(0.8);
@@ -268,11 +269,9 @@ public class TicTacToeGame {
                 scale.setToY(1.0);
                 scale.play();
 
-                // Switch current player
                 currentPlayer = currentPlayer.equals("X") ? "O" : "X";
                 updateStatus();
 
-                // Check for win or draw
                 checkGameEnd();
             }
         });
@@ -282,10 +281,22 @@ public class TicTacToeGame {
         if (gameActive) {
             if (currentPlayer.equals(playerSymbol)) {
                 statusLabel.setText("⚡ Your turn - Cast your move!");
-                statusLabel.setStyle(statusLabel.getStyle().replace("-fx-text-fill: #[^;]+", "-fx-text-fill: #90ee90"));
+                statusLabel.setStyle(
+                        "-fx-text-fill: #a0b9a5;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 14px;" +
+                                "-fx-text-alignment: center;"
+                );
             } else {
                 statusLabel.setText("⏳ " + opponentName + "'s turn...");
-                statusLabel.setStyle(statusLabel.getStyle().replace("-fx-text-fill: #[^;]+", "-fx-text-fill: #ffd700"));
+                statusLabel.setStyle(
+                        "-fx-text-fill: #f3f4d2;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 14px;" +
+                                "-fx-text-alignment: center;"
+                );
             }
         }
     }
@@ -296,29 +307,45 @@ public class TicTacToeGame {
             gameActive = false;
             if (winner.equals(playerSymbol)) {
                 statusLabel.setText("🎉 Victory! You have won the duel! 🎉");
-                statusLabel.setStyle(statusLabel.getStyle().replace("-fx-text-fill: #[^;]+", "-fx-text-fill: #90ee90"));
+                statusLabel.setStyle(
+                        "-fx-text-fill: #a0b9a5;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 14px;" +
+                                "-fx-text-alignment: center;"
+                );
             } else {
                 statusLabel.setText("💀 Defeat! " + opponentName + " has won the duel!");
-                statusLabel.setStyle(statusLabel.getStyle().replace("-fx-text-fill: #[^;]+", "-fx-text-fill: #ff6b6b"));
+                statusLabel.setStyle(
+                        "-fx-text-fill: #5e8581;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 14px;" +
+                                "-fx-text-alignment: center;"
+                );
             }
             showEndGameButtons();
         } else if (isBoardFull()) {
             gameActive = false;
             statusLabel.setText("⚖️ The duel ends in a draw! Honor to both wizards!");
-            statusLabel.setStyle(statusLabel.getStyle().replace("-fx-text-fill: #[^;]+", "-fx-text-fill: #ffd700"));
+            statusLabel.setStyle(
+                    "-fx-text-fill: #f3f4d2;" +
+                            "-fx-font-family: 'Times New Roman', serif;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-font-size: 14px;" +
+                            "-fx-text-alignment: center;"
+            );
             showEndGameButtons();
         }
     }
 
     private String checkWinner() {
-        // Check rows
         for (int i = 0; i < gridSize; i++) {
             if (checkLine(gameBoard[i])) {
                 return gameBoard[i][0];
             }
         }
 
-        // Check columns
         for (int j = 0; j < gridSize; j++) {
             String[] column = new String[gridSize];
             for (int i = 0; i < gridSize; i++) {
@@ -329,7 +356,6 @@ public class TicTacToeGame {
             }
         }
 
-        // Check diagonals
         String[] diagonal1 = new String[gridSize];
         String[] diagonal2 = new String[gridSize];
         for (int i = 0; i < gridSize; i++) {
@@ -383,12 +409,25 @@ public class TicTacToeGame {
             gameActive = true;
             currentPlayer = "X";
 
-            // Clear board
             for (int i = 0; i < gridSize; i++) {
                 for (int j = 0; j < gridSize; j++) {
                     gameBoard[i][j] = "";
                     gameButtons[i][j].setText("");
-                    gameButtons[i][j].setStyle(createButtonStyle(false));
+                    gameButtons[i][j].setStyle(BASE_BUTTON_STYLE);
+
+                    final int row = i;
+                    final int col = j;
+                    gameButtons[i][j].setOnMouseEntered(e -> {
+                        if (gameButtons[row][col].getText().isEmpty() && gameActive && currentPlayer.equals(playerSymbol)) {
+                            gameButtons[row][col].setStyle(HOVER_BUTTON_STYLE);
+                        }
+                    });
+
+                    gameButtons[i][j].setOnMouseExited(e -> {
+                        if (gameButtons[row][col].getText().isEmpty()) {
+                            gameButtons[row][col].setStyle(BASE_BUTTON_STYLE);
+                        }
+                    });
                 }
             }
 
@@ -428,7 +467,13 @@ public class TicTacToeGame {
         Platform.runLater(() -> {
             if (message.equals("OPPONENT_LEFT")) {
                 statusLabel.setText("💨 " + opponentName + " has left the duel!");
-                statusLabel.setStyle(statusLabel.getStyle().replace("-fx-text-fill: #[^;]+", "-fx-text-fill: #ff6b6b"));
+                statusLabel.setStyle(
+                        "-fx-text-fill: #5e8581;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 14px;" +
+                                "-fx-text-alignment: center;"
+                );
                 gameActive = false;
                 showEndGameButtons();
             }

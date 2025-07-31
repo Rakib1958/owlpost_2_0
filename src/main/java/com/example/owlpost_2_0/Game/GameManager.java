@@ -3,6 +3,7 @@ package com.example.owlpost_2_0.Game;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -11,7 +12,7 @@ public class GameManager {
     private TicTacToeGame currentGame;
     private String playerName;
     private Consumer<String> gameRequestCallback;
-    private static final String GAME_SERVER_HOST = "localhost"; // Change to your server IP
+    private static final String GAME_SERVER_HOST = "localhost";
     private static final int GAME_SERVER_PORT = 9900;
 
     public GameManager(String playerName) {
@@ -90,22 +91,20 @@ public class GameManager {
                 alert.setTitle("⚔️ Wizarding Duel Challenge!");
                 alert.setHeaderText("🧙‍♂️ " + fromPlayer + " challenges you to a magical duel!");
                 alert.setContentText("Game Type: " + gameType + " TicTacToe\n\nDo you accept this challenge?");
-
-                // Style the alert
                 alert.getDialogPane().setStyle(
-                        "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
-                                "-fx-border-color: #8b4513;" +
+                        "-fx-background-color: linear-gradient(to bottom, #122838, #364c52);" +
+                                "-fx-border-color: #5e8581;" +
                                 "-fx-border-width: 3px;" +
                                 "-fx-border-radius: 15px;" +
                                 "-fx-background-radius: 15px;"
                 );
                 alert.getDialogPane().lookup(".content.label").setStyle(
-                        "-fx-text-fill: #e6ddd4;" +
+                        "-fx-text-fill: #f3f4d2;" +
                                 "-fx-font-family: 'Times New Roman', serif;" +
                                 "-fx-font-size: 14px;"
                 );
                 alert.getDialogPane().lookup(".header-panel .label").setStyle(
-                        "-fx-text-fill: #ffd700;" +
+                        "-fx-text-fill: #a0b9a5;" +
                                 "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
                                 "-fx-font-weight: bold;" +
                                 "-fx-font-size: 16px;"
@@ -114,6 +113,24 @@ public class GameManager {
                 ButtonType acceptBtn = new ButtonType("⚡ Accept Challenge");
                 ButtonType declineBtn = new ButtonType("🛡️ Decline");
                 alert.getButtonTypes().setAll(acceptBtn, declineBtn);
+                alert.getDialogPane().lookupButton(acceptBtn).setStyle(
+                        "-fx-background-color: #5e8581;" +
+                                "-fx-text-fill: #f3f4d2;" +
+                                "-fx-border-color: #a0b9a5;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-font-weight: bold;"
+                );
+                alert.getDialogPane().lookupButton(declineBtn).setStyle(
+                        "-fx-background-color: #364c52;" +
+                                "-fx-text-fill: #f3f4d2;" +
+                                "-fx-border-color: #5e8581;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-font-weight: bold;"
+                );
 
                 Optional<ButtonType> result = alert.showAndWait();
 
@@ -155,8 +172,7 @@ public class GameManager {
 
     private void handleGameEnd(String[] parts) {
         if (parts.length >= 3 && currentGame != null) {
-            String result = parts[2]; // WIN, LOSE, DRAW
-            // Game end is handled by the TicTacToeGame class through move validation
+            String result = parts[2];
         }
     }
 
@@ -169,26 +185,53 @@ public class GameManager {
                 alert.setTitle("🔄 Another Round?");
                 alert.setHeaderText("🧙‍♂️ " + fromPlayer + " wants to duel again!");
                 alert.setContentText("Do you want to play another round?");
-
-                // Style the alert
                 alert.getDialogPane().setStyle(
-                        "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
-                                "-fx-border-color: #8b4513;" +
+                        "-fx-background-color: linear-gradient(to bottom, #122838, #364c52);" +
+                                "-fx-border-color: #5e8581;" +
                                 "-fx-border-width: 3px;" +
                                 "-fx-border-radius: 15px;" +
                                 "-fx-background-radius: 15px;"
+                );
+                alert.getDialogPane().lookup(".content.label").setStyle(
+                        "-fx-text-fill: #f3f4d2;" +
+                                "-fx-font-family: 'Times New Roman', serif;" +
+                                "-fx-font-size: 14px;"
+                );
+                alert.getDialogPane().lookup(".header-panel .label").setStyle(
+                        "-fx-text-fill: #a0b9a5;" +
+                                "-fx-font-family: 'Cinzel', 'Times New Roman', serif;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-font-size: 16px;"
                 );
 
                 ButtonType yesBtn = new ButtonType("⚡ Yes, Let's Duel!");
                 ButtonType noBtn = new ButtonType("🚪 No, I'm Done");
                 alert.getButtonTypes().setAll(yesBtn, noBtn);
 
+                // Style the buttons
+                alert.getDialogPane().lookupButton(yesBtn).setStyle(
+                        "-fx-background-color: #5e8581;" +
+                                "-fx-text-fill: #f3f4d2;" +
+                                "-fx-border-color: #a0b9a5;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-font-weight: bold;"
+                );
+                alert.getDialogPane().lookupButton(noBtn).setStyle(
+                        "-fx-background-color: #364c52;" +
+                                "-fx-text-fill: #f3f4d2;" +
+                                "-fx-border-color: #5e8581;" +
+                                "-fx-border-width: 2px;" +
+                                "-fx-border-radius: 8px;" +
+                                "-fx-background-radius: 8px;" +
+                                "-fx-font-weight: bold;"
+                );
+
                 Optional<ButtonType> result = alert.showAndWait();
 
                 if (result.isPresent() && result.get() == yesBtn) {
-                    // Accept play again - server will reset the game
                 } else {
-                    // Decline play again
                     if (currentGame != null) {
                         currentGame.closeGame();
                         currentGame = null;
@@ -235,17 +278,15 @@ public class GameManager {
             alert.setTitle(title);
             alert.setHeaderText(null);
             alert.setContentText(message);
-
-            // Style the alert
             alert.getDialogPane().setStyle(
-                    "-fx-background-color: linear-gradient(to bottom, #1a0f08, #2c1810);" +
-                            "-fx-border-color: #8b4513;" +
+                    "-fx-background-color: linear-gradient(to bottom, #122838, #364c52);" +
+                            "-fx-border-color: #5e8581;" +
                             "-fx-border-width: 3px;" +
                             "-fx-border-radius: 15px;" +
                             "-fx-background-radius: 15px;"
             );
             alert.getDialogPane().lookup(".content.label").setStyle(
-                    "-fx-text-fill: #e6ddd4;" +
+                    "-fx-text-fill: #f3f4d2;" +
                             "-fx-font-family: 'Times New Roman', serif;" +
                             "-fx-font-size: 14px;"
             );

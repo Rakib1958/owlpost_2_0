@@ -23,12 +23,10 @@ public class GameClient {
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // Send player name to server
             out.println("PLAYER:" + playerName);
 
             isConnected = true;
 
-            // Start listening for messages
             listenerThread = new Thread(this::listenForMessages);
             listenerThread.setDaemon(true);
             listenerThread.start();
