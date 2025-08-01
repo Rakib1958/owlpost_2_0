@@ -6,8 +6,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.effect.Bloom?>
-<?import javafx.scene.effect.Glow?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -15,7 +13,6 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.media.MediaView?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
@@ -42,7 +39,7 @@
                 </HBox>
 
                 <!-- Friends List Scroll -->
-                <ScrollPane fx:id="leftpane" hbarPolicy="NEVER" layoutY="70.0" prefHeight="650.0" prefWidth="319.0" styleClass="left-scroll" vbarPolicy="NEVER">
+                <ScrollPane fx:id="leftpane" hbarPolicy="NEVER" vbarPolicy="NEVER" layoutY="70.0" prefHeight="650.0" prefWidth="319.0" styleClass="left-scroll">
                     <content>
                         <VBox fx:id="friendslist" styleClass="friends-list" />
                     </content>
@@ -61,7 +58,7 @@
                 </ImageView>
 
                 <!-- Gemini Panel -->
-                <Pane fx:id="geminiPane" prefHeight="720.0" prefWidth="354.0" style="-fx-background-color: rgba(18, 40, 56, 0.95);" visible="false">
+                <Pane fx:id="geminiPane" prefHeight="720.0" prefWidth="354.0" visible="false" style="-fx-background-color: rgba(18, 40, 56, 0.95);">
                     <children>
                         <Label layoutX="20.0" layoutY="15.0" text="AI Assistant" textFill="#f3f4d2">
                             <font>
@@ -69,7 +66,7 @@
                             </font>
                         </Label>
 
-                        <ScrollPane fx:id="geminiscrollpane" fitToWidth="true" hbarPolicy="NEVER" layoutY="60.0" prefHeight="600.0" prefWidth="354.0" vbarPolicy="NEVER">
+                        <ScrollPane fx:id="geminiscrollpane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" layoutY="60.0" prefHeight="600.0" prefWidth="354.0">
                             <content>
                                 <VBox fx:id="geminibox" prefWidth="354.0" spacing="8" />
                             </content>
@@ -132,7 +129,7 @@
                         </Label>
 
                         <!-- AI Button -->
-                        <Button fx:id="geminiBTN" layoutX="27.0" layoutY="660.0" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40" prefWidth="60" styleClass="sending-btn" text="AI">
+                        <Button fx:id="geminiBTN" layoutX="27.0" layoutY="660.0" mnemonicParsing="false" onAction="#ButtonAction" styleClass="sending-btn" text="AI" prefWidth="60" prefHeight="40">
                             <cursor>
                                 <Cursor fx:constant="HAND" />
                             </cursor>
@@ -155,12 +152,12 @@
                                 <!-- Chat Background - Updated to use your Hogwarts image -->
                                 <ImageView fx:id="chatBG" fitHeight="580.0" fitWidth="607.0" layoutY="70.0" pickOnBounds="true" preserveRatio="false">
                                     <image>
-                                        <Image url="@../Images/Backgrounds/hogwarts.png" />
+                                        <Image url="@../Images/hogwarts_background.jpg" />
                                     </image>
                                 </ImageView>
 
                                 <!-- Chat Messages Scroll -->
-                                <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" layoutY="70.0" prefHeight="580.0" prefWidth="607.0" vbarPolicy="NEVER">
+                                <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" layoutY="70.0" prefHeight="580.0" prefWidth="607.0">
                                     <content>
                                         <VBox fx:id="msgbox" prefWidth="607.0" spacing="8" />
                                     </content>
@@ -190,18 +187,18 @@
                                         <Pane HBox.hgrow="ALWAYS" />
 
                                         <!-- Action Buttons with Icons - Moved to far right -->
-                                        <HBox fx:id="headerButtonsBox" alignment="CENTER_RIGHT" spacing="15">
-                                            <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="call-btn">
+                                        <HBox fx:id="headerButtonsBox" spacing="15" alignment="CENTER_RIGHT">
+                                            <Button fx:id="audiocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" prefHeight="40.0" prefWidth="40.0">
                                                 <font>
                                                     <Font size="16.0" />
                                                 </font>
                                             </Button>
-                                            <Button fx:id="videocall" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="call-btn">
+                                            <Button fx:id="videocall" mnemonicParsing="false" onAction="#ButtonAction" styleClass="call-btn" prefHeight="40.0" prefWidth="40.0">
                                                 <font>
                                                     <Font size="16.0" />
                                                 </font>
                                             </Button>
-                                            <Button fx:id="infobtn" mnemonicParsing="false" onAction="#ButtonAction" prefHeight="40.0" prefWidth="40.0" styleClass="info-btn">
+                                            <Button fx:id="infobtn" mnemonicParsing="false" onAction="#ButtonAction" styleClass="info-btn" prefHeight="40.0" prefWidth="40.0">
                                                 <font>
                                                     <Font size="16.0" />
                                                 </font>
@@ -268,9 +265,9 @@
         </Pane>
 
         <!-- Emoji Picker Overlay -->
-        <Pane fx:id="emojipane_test" prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: rgba(0, 0, 0, 0.5);" visible="false">
+        <Pane fx:id="emojipane_test" prefHeight="720.0" prefWidth="1280.0" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.5);">
             <children>
-                <ScrollPane fx:id="emojiscroller" hbarPolicy="NEVER" layoutX="500.0" layoutY="300.0" prefHeight="300.0" prefWidth="280.0" style="-fx-background-color: #f3f4d2; -fx-background-radius: 12;" vbarPolicy="AS_NEEDED">
+                <ScrollPane fx:id="emojiscroller" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" layoutX="500.0" layoutY="300.0" prefHeight="300.0" prefWidth="280.0" style="-fx-background-color: #f3f4d2; -fx-background-radius: 12;">
                     <content>
                         <VBox fx:id="emojibox" prefHeight="300.0" prefWidth="280.0" style="-fx-background-color: #f3f4d2;" />
                     </content>
@@ -282,29 +279,5 @@
                 </Button>
             </children>
         </Pane>
-      <Pane fx:id="introvideopane" prefHeight="720.0" prefWidth="1280.0">
-         <children>
-            <MediaView fx:id="owlvideo" fitHeight="720.0" fitWidth="1280.0" />
-         </children>
-      </Pane>
-      <Pane fx:id="footstepPane" prefHeight="720.0" prefWidth="1280.0">
-         <children>
-            <Label fx:id="owltext" layoutX="1011.0" layoutY="480.0" prefHeight="80.0" prefWidth="213.0" text="OwlPost" textFill="#ead645" visible="false">
-               <font>
-                  <Font name="Harry P" size="68.0" />
-               </font>
-               <effect>
-                  <Bloom threshold="0.7" />
-               </effect>
-            </Label>
-            <Label fx:id="privacytext" layoutX="1011.0" layoutY="575.0" prefHeight="20.0" prefWidth="165.0" text="Your privacy is our utmost concern" textFill="#fad946" visible="false">
-               <font>
-                  <Font name="Harry P" size="16.0" />
-               </font>
-               <effect>
-                  <Glow level="0.75" />
-               </effect></Label>
-         </children>
-      </Pane>
     </children>
 </AnchorPane>
