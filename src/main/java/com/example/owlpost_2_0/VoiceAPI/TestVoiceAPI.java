@@ -43,7 +43,6 @@ public class TestVoiceAPI {
 
         int responseCode = conn.getResponseCode();
         if (responseCode == 200) {
-            // Read response (JSON) containing audio_url
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
                 StringBuilder response = new StringBuilder();
                 String line;
@@ -52,7 +51,7 @@ public class TestVoiceAPI {
                     response.append(line);
                 }
 
-                // Example: {"upload_url":"https://cdn.assemblyai.com/upload/xyz.wav"}
+                //{"upload_url":"https://cdn.assemblyai.com/upload/xyz.wav"}
                 String json = response.toString();
                 String audioUrl = json.split(":\"")[1].split("\"")[0];
                 return audioUrl;

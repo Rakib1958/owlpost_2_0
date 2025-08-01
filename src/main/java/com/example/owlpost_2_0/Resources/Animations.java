@@ -95,7 +95,7 @@ public class Animations {
     }
 
     public static void typeWriterEffectWithCursor(Label label, String fullText, double typingSpeed, boolean showCursor) {
-        label.setText(""); // Clear the label initially
+        label.setText("");
 
         Timeline typingTimeline = new Timeline();
         Timeline cursorTimeline = new Timeline();

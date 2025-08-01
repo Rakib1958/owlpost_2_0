@@ -208,7 +208,6 @@ public class GameManager {
                 ButtonType noBtn = new ButtonType("🚪 No, I'm Done");
                 alert.getButtonTypes().setAll(yesBtn, noBtn);
 
-                // Style the buttons
                 alert.getDialogPane().lookupButton(yesBtn).setStyle(
                         "-fx-background-color: #5e8581;" +
                                 "-fx-text-fill: #f3f4d2;" +

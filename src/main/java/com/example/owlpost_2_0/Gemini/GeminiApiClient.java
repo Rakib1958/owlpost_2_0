@@ -31,7 +31,6 @@ public class GeminiApiClient {
         }
         lastRequestTime = System.currentTimeMillis();
 
-        // Safe JSON build
         JSONObject part = new JSONObject().put("text", prompt);
         JSONArray parts = new JSONArray().put(part);
         JSONObject content = new JSONObject().put("parts", parts);
@@ -46,7 +45,7 @@ public class GeminiApiClient {
         payload.put("generationConfig", generationConfig);
 
         String json = payload.toString();
-//        System.out.println("Request JSON:\n" + json); // Debug log
+//        System.out.println("Request JSON:\n" + json);
 
         RequestBody body = RequestBody.create(
                 json, MediaType.parse("application/json; charset=utf-8")

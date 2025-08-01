@@ -107,7 +107,6 @@ public class GameServer {
         if (session == null) return;
 
         if (session.makeMove(row, col, player)) {
-            // Broadcast move to both players
             String symbol = session.getPlayerSymbol(player);
             session.getPlayers().forEach(p -> {
                 if (clients.containsKey(p)) {

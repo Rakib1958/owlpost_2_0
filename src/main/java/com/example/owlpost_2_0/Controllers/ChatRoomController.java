@@ -3458,7 +3458,7 @@ public class ChatRoomController implements Initializable {
     String[] emojis = {"😄", "😆", "😂", "😁", "😅", "😉", "🥲", "🙂", "🤗", "🤔", "🫡", "😑", "🫤", "🙃", "🫠", "🤑", "😖", "😞", "😤", "😭", "😢", "🤪", "😠", "🤮", "😇", "🤭", "😈", "💩", "✌️", "️👌", "👍", "👎", "👊", "👏", "🙌", "🫶", "❤", "️💛", "💚", "💙", "🖤", "🤍", "💔", "❣️", "💞", "❤️‍🩹"};
 
     private void loadEmojis() {
-        emojibox.getChildren().clear(); // Clear previous emojis if reloading
+        emojibox.getChildren().clear();
 
         int index = 0;
         int columns = 5;
@@ -3479,7 +3479,7 @@ public class ChatRoomController implements Initializable {
                             -fx-font-family: 'Segoe UI Emoji';
                         """);
                 emojiBtn.setPrefSize(50, 50);
-                emojiBtn.setFocusTraversable(false); // Prevent focus on tab
+                emojiBtn.setFocusTraversable(false);
                 emojiBtn.setFont(Font.font("Segoe UI Emoji"));
 
                 emojiBtn.setOnAction(e -> msgField.appendText(emoji));
