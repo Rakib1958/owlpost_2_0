@@ -5,9 +5,7 @@ import com.example.owlpost_2_0.Database.DatabaseHandler;
 import com.example.owlpost_2_0.Email.EmailService;
 import com.example.owlpost_2_0.Resources.Animations;
 import com.example.owlpost_2_0.Resources.Audios;
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -86,6 +84,8 @@ public class LoginController implements Initializable {
     private Label alertheading;
     @FXML
     private Label alertbody;
+    @FXML
+    private Label owlPostLabel;
 
     // textfields
     @FXML
@@ -314,7 +314,6 @@ public class LoginController implements Initializable {
             return;
         }
         client = foundclient;
-        // find the client with this email and copy it in current client object, for changing its password
         try {
             resetNum = EmailService.sendEmail(email);
             foundornotfound.setText("Reset code sent!");
@@ -415,11 +414,7 @@ public class LoginController implements Initializable {
         System.out.println("Selected patronus: " + selectedPatronus);
 
         patronus.setViewport(new Rectangle2D(0, 0, 108, 120));
-
-        // Load house image with better debugging
         loadHouseImage();
-
-        // Load patronus image with better debugging
         loadPatronusImage();
 
         client.setHouse(selectedHouse);
@@ -435,7 +430,6 @@ public class LoginController implements Initializable {
                 System.err.println("Failed to register user after sorting!");
             }
         }
-        // Let user admire their results for 3 seconds, then show continue option
         javafx.animation.Timeline displayTimer = new javafx.animation.Timeline(
                 new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3), e -> {
                     showAlert("", "Welcome to " + selectedHouse.toUpperCase() + "!",
@@ -498,10 +492,8 @@ public class LoginController implements Initializable {
 
     private void loadHouseImage() {
         try {
-            // Debug: Print current working directory and classpath
             System.out.println("Attempting to load house image for: " + selectedHouse);
 
-            // Try multiple possible paths
             String[] possiblePaths = {
                     "/Images/LoginForm/" + selectedHouse + "-logo.png",
                     "/com/example/owlpost_2_0/Images/LoginForm/" + selectedHouse + "-logo.png",
@@ -540,7 +532,6 @@ public class LoginController implements Initializable {
 //                }
             } else {
                 System.err.println("Could not load house image from any path for: " + selectedHouse);
-                // Show a placeholder or text instead
                 HouseSelected.setVisible(false);
             }
         } catch (Exception e) {
@@ -557,7 +548,7 @@ public class LoginController implements Initializable {
                     "/Images/Patronus/" + selectedPatronus + ".jpg",
                     "/com/example/owlpost_2_0/Images/Patronus/" + selectedPatronus + ".jpg",
                     "/Images/" + selectedPatronus + ".jpg",
-                    "/Images/Patronus/" + selectedPatronus + ".png", // try PNG format too
+                    "/Images/Patronus/" + selectedPatronus + ".png",
             };
 
             Image patronusImage = null;
@@ -589,7 +580,6 @@ public class LoginController implements Initializable {
                 patronus_frame.setVisible(true);
             } else {
                 System.err.println("Could not load patronus image from any path for: " + selectedPatronus);
-                // Hide patronus elements if image can't be loaded
                 patronus.setVisible(false);
                 patronus_frame.setVisible(false);
             }
@@ -639,10 +629,34 @@ public class LoginController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         dbHandler = DatabaseHandler.getInstance();
 
+
         Animations.leftRight((signupPane));
-        Animations.leftRight((loginPane));
+        //Animations.leftRight((loginPane));
         Animations.leftRight((sortingPane));
         Animations.leftRight((recoveryPane));
+
+        Platform.runLater(() -> {
+            Timeline delayedAnimation = new Timeline(new KeyFrame(Duration.millis(1000), e -> {
+                if (owlPostLabel != null) {
+                    Animations.typeWriterEffect(owlPostLabel, "OwlPost", 250);
+                }
+            }));
+            delayedAnimation.play();
+        });
+        loginBtn.setStyle("-fx-scale-x: 1.0; -fx-scale-y: 1.0;");
+        loginBtn.hoverProperty().addListener((obs, wasHovered, isNowHovered) -> {
+            loginBtn.setScaleX(1.0);
+            loginBtn.setScaleY(1.0);
+        });
+        loginBtn.setOnMouseEntered(e -> {
+            loginBtn.setScaleX(1.0);
+            loginBtn.setScaleY(1.0);
+        });
+
+        loginBtn.setOnMouseExited(e -> {
+            loginBtn.setScaleX(1.0);
+            loginBtn.setScaleY(1.0);
+        });
 
     }
 

@@ -1,6 +1,8 @@
 package com.example.owlpost_2_0.Resources;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -68,5 +70,73 @@ public class Animations {
         }
     }
 
+    public static void typeWriterEffect(Label label, String fullText, double typingSpeed) {
+        label.setText("");
+
+        Timeline timeline = new Timeline();
+        for (int i = 0; i <= fullText.length(); i++) {
+            final int index = i;
+            KeyFrame keyFrame = new KeyFrame(
+                    Duration.millis(typingSpeed * i),
+                    e -> {
+                        if (index <= fullText.length()) {
+                            label.setText(fullText.substring(0, index));
+                        }
+                    }
+            );
+            timeline.getKeyFrames().add(keyFrame);
+        }
+
+        timeline.play();
+    }
+
+    public static void typeWriterEffect(Label label, String fullText) {
+        typeWriterEffect(label, fullText, 150);
+    }
+
+    public static void typeWriterEffectWithCursor(Label label, String fullText, double typingSpeed, boolean showCursor) {
+        label.setText(""); // Clear the label initially
+
+        Timeline typingTimeline = new Timeline();
+        Timeline cursorTimeline = new Timeline();
+        for (int i = 0; i <= fullText.length(); i++) {
+            final int index = i;
+            KeyFrame keyFrame = new KeyFrame(
+                    Duration.millis(typingSpeed * i),
+                    e -> {
+                        String currentText = fullText.substring(0, index);
+                        if (showCursor && index < fullText.length()) {
+                            label.setText(currentText + "|");
+                        } else {
+                            label.setText(currentText);
+                        }
+                    }
+            );
+            typingTimeline.getKeyFrames().add(keyFrame);
+        }
+        if (showCursor) {
+            KeyFrame cursorBlink = new KeyFrame(
+                    Duration.millis(500),
+                    e -> {
+                        String currentText = label.getText();
+                        if (currentText.endsWith("|")) {
+                            label.setText(currentText.substring(0, currentText.length() - 1));
+                        } else if (!currentText.equals(fullText)) {
+                            label.setText(currentText + "|");
+                        }
+                    }
+            );
+            cursorTimeline.getKeyFrames().add(cursorBlink);
+            cursorTimeline.setCycleCount(Timeline.INDEFINITE);
+        }
+        typingTimeline.play();
+        if (showCursor) {
+            cursorTimeline.play();
+            typingTimeline.setOnFinished(e -> {
+                cursorTimeline.stop();
+                label.setText(fullText);
+            });
+        }
+    }
 
 }
